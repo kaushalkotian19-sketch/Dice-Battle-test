@@ -50,6 +50,9 @@
         </div>
 
         <div class="action-zone">
+            <div class="shield-toggle">
+                <label><input type="checkbox" id="shield-active"> 🛡️ Use Shield (500c)</label>
+            </div>
             <input type="number" id="bet-input" value="10">
             <div class="btn-group">
                 <button id="roll-std" class="btn-battle std">🎲 Standard</button>
@@ -59,7 +62,14 @@
     </div>
 
     <div id="tab-vault" class="tab-content" style="display:none;">
-        <h2 class="section-title">💎 THE VAULT</h2>
+        <h2 class="section-title">✨ AURA SELECTOR</h2>
+        <div class="theme-grid">
+            <button class="btn-theme" onclick="setTheme('default')">🌑 Classic</button>
+            <button class="btn-theme" onclick="setTheme('cyberpunk')">🧬 Cyberpunk</button>
+            <button class="btn-theme" onclick="setTheme('inferno')">🔥 Inferno</button>
+        </div>
+
+        <h2 class="section-title">💎 UPGRADES</h2>
         <div class="shop-grid glass">
             <p>Permanent Upgrades (Tokens Only)</p>
             <button class="btn-shop" onclick="buyPermanent('hp', 10)">❤️ Extra Life (120HP) - 10T</button>
