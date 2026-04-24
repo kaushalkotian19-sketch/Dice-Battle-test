@@ -5,52 +5,40 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
+body.boss-theme { background: radial-gradient(circle, #2e0505, #020617); }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: white; min-height: 100vh;
-  display: flex; flex-direction: column; align-items: center;
-  overflow: hidden;
-}
+.game-container { width: 95%; max-width: 400px; margin: auto; padding: 10px 5px; height: 100vh; display: flex; flex-direction: column; }
 
-body.boss-theme { background: radial-gradient(circle, #1e0000, #020617); }
+/* VAULT */
+.vault-section { margin: 10px 0; padding: 10px; text-align: center; }
+.vault-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--gold); margin-bottom: 5px; }
+.skin-buttons { display: flex; gap: 5px; justify-content: center; }
+.btn-skin { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 9px; font-weight: bold; }
 
-.game-container {
-  width: 95%; max-width: 400px; height: 100vh;
-  padding: 20px 10px; display: flex; flex-direction: column;
-}
+/* DICE & ARENA */
+.dice-space img { width: 60px; height: 60px; object-fit: contain; transition: all 0.3s; }
+.skin-neon { filter: drop-shadow(0 0 10px #00f2ff) brightness(1.2); }
+.skin-fire { filter: drop-shadow(0 0 10px #ff4d00) sepia(0.5); }
+.burning { animation: firePulse 0.5s infinite alternate; }
+@keyframes firePulse { from { filter: drop-shadow(0 0 5px #ff4d00); } to { filter: drop-shadow(0 0 20px #ff0000); transform: scale(1.05); } }
 
-/* HEADER & BADGES */
-.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.badge-rank { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 900; }
-.badge-lvl { background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+.battle-arena { display: flex; align-items: center; gap: 5px; margin: 5px 0; }
+.player-box { flex: 1; padding: 10px 5px; text-align: center; }
+.glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; }
 
-/* BATTLE AREA & DICE */
-.battle-arena { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
-.player-box { flex: 1; padding: 15px 5px; text-align: center; }
-.glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
-
-.dice-space img { width: 70px; height: 70px; object-fit: contain; }
-.hp-wrapper { width: 80%; height: 5px; background: rgba(255,255,255,0.1); margin: 0 auto 10px; border-radius: 10px; overflow: hidden; }
+/* UI ELEMENTS */
+.badge-rank { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #334155; }
+.badge-lvl { background: var(--gold); color: black; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+.hp-wrapper { width: 80%; height: 4px; background: rgba(255,255,255,0.1); margin: 0 auto 8px; border-radius: 10px; overflow: hidden; }
 .hp-bar { height: 100%; background: #22c55e; transition: width 0.4s ease; }
-
-/* STATUS & ACTIONS */
-.status-panel { display: flex; justify-content: space-around; padding: 10px; margin-bottom: 15px; font-size: 14px; }
-.boss-alert { color: #ef4444; text-align: center; font-weight: 900; animation: blink 1s infinite; }
-
-#bet-input { width: 100%; background: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 10px; }
-.btn-group { display: flex; gap: 10px; }
-.btn-battle { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; color: white; cursor: pointer; }
+.status-panel { display: flex; justify-content: space-around; padding: 8px; margin: 5px 0; font-size: 12px; }
+.btn-battle { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; color: white; }
 .std { background: linear-gradient(to bottom right, #f87171, #fb923c); }
 .bsk { background: linear-gradient(to bottom right, #c084fc, #f472b6); }
-
-.wallet-footer { text-align: center; font-weight: bold; margin-top: auto; padding-bottom: 20px; }
-
-/* ANIMATIONS */
-@keyframes blink { 50% { opacity: 0; } }
+.boss-alert { color: #ef4444; font-weight: 900; text-align: center; font-size: 11px; margin-bottom: 5px; }
 .dice-rolling { animation: shake 0.1s infinite; }
-@keyframes shake { 0% { transform: rotate(0); } 50% { transform: rotate(5deg); } 100% { transform: rotate(-5deg); } }
+@keyframes shake { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(5deg); } }
 
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.glow-text { color: var(--gold); text-shadow: 0 0 20px var(--gold); margin-bottom: 15px; }
+.wallet-footer { text-align: center; font-size: 14px; margin-top: auto; padding-bottom: 10px; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; text-align: center; }
