@@ -19,7 +19,6 @@
 <div id="home-screen" class="home">
   <h1 class="title">🎲 DICE <span>BATTLE</span></h1>
   <div class="login-box">
-    <button class="connect-btn daily-btn" onclick="claimDailyReward()">🎁 Daily Chest</button>
     <input type="text" id="nickname-input" placeholder="Enter Nickname..." class="glass-input">
     <button class="connect-btn" onclick="handleSimpleLogin()">🚀 Enter Arena</button>
   </div>
@@ -27,6 +26,7 @@
 
 <div id="game-screen" style="display:none;">
   <div class="main-scroll-area">
+    
     <div id="tab-arena" class="tab-content active">
         <div class="user-header">
             <span id="display-username">Player</span> 
@@ -48,9 +48,6 @@
         </div>
 
         <div class="action-zone glass">
-            <div class="combat-mods">
-                <label class="shield-check"><input type="checkbox" id="shield-active"> 🛡️ Shield (500c)</label>
-            </div>
             <input type="number" id="bet-input" value="10" class="bet-field">
             <div class="btn-group">
                 <button class="btn-battle std-premium" onclick="startBattle('std')">🎲 Standard</button>
@@ -74,23 +71,14 @@
                 <span>❤️ +20 Max HP</span>
                 <button class="up-btn" onclick="buyPermanent('hp', 10)">10T</button>
             </div>
-            <div class="upgrade-row">
-                <span>🍀 +5% Luck</span>
-                <button class="up-btn" onclick="buyPermanent('luck', 25)">25T</button>
-            </div>
         </div>
     </div>
 
-    <div id="tab-hall" class="tab-content">
-        <h3 class="section-label">🏆 HALL OF FAME</h3>
-        <div id="hall-list" class="glass log-container"></div>
-    </div>
   </div>
 
   <div class="wallet-bar glass">
     <span>💰 <span id="coins-game">0</span></span>
     <span>🪙 <span id="tokens-game">0</span></span>
-    <span>✨ <span id="multiplier-display">1x</span></span>
   </div>
 </div>
 
