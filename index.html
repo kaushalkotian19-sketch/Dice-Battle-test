@@ -11,7 +11,7 @@
 <div id="celebration-overlay" class="overlay" style="display:none;">
     <div class="overlay-content">
         <h1 id="celebration-title" class="glow-text">LEVEL UP!</h1>
-        <p id="celebration-desc">You've reached Level <span id="new-lvl">1</span></p>
+        <p id="celebration-desc">Level <span id="new-lvl">1</span> reached!</p>
         <button class="connect-btn" onclick="closeOverlay()">CONTINUE</button>
     </div>
 </div>
@@ -42,18 +42,24 @@
       <div class="player-box glass" id="p1-card">
         <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
         <div class="p-label">YOU</div>
-        <div class="dice-space"><img id="dice1" src="./assets/red-1.png"></div>
+        <div class="dice-space" id="p1-dice-container"><img id="dice1" src="./assets/red-1.png"></div>
         <p class="roll-val">Roll: <span id="score1">0</span></p>
       </div>
-
       <div class="vs-divider">VS</div>
-
       <div class="player-box glass" id="p2-card">
         <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
         <div class="p-label" id="p2-label">OPPONENT</div>
         <div class="dice-space"><img id="dice2" src="./assets/green-1.png"></div>
         <p class="roll-val">Roll: <span id="score2">0</span></p>
       </div>
+    </div>
+
+    <div class="vault-section glass">
+        <p class="vault-title">💎 THE VAULT</p>
+        <div class="skin-buttons">
+            <button class="btn-skin" id="skin-neon" onclick="buySkin('neon', 50000)">💠 Neon</button>
+            <button class="btn-skin" id="skin-fire" onclick="buySkin('fire', 250000)">🔥 Fire</button>
+        </div>
     </div>
 
     <div class="status-panel glass">
