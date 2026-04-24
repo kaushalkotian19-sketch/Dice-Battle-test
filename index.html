@@ -27,7 +27,6 @@
 
 <div id="game-screen" style="display:none;">
   <div class="main-scroll-area">
-    
     <div id="tab-arena" class="tab-content active">
         <div class="user-header">
             <span id="display-username">Player</span> 
@@ -57,29 +56,29 @@
                 <button class="btn-battle std-premium" onclick="startBattle('std')">🎲 Standard</button>
                 <button class="btn-battle bsk-premium" onclick="startBattle('bsk')">⚡ Berserk</button>
             </div>
+            <div id="battle-status" class="status-msg">Ready to Battle?</div>
         </div>
     </div>
 
     <div id="tab-vault" class="tab-content">
         <h3 class="section-label">✨ AURA SELECTOR</h3>
         <div class="aura-grid">
-            <div class="aura-card" onclick="setTheme('default')">🌑 <span>Classic</span></div>
-            <div class="aura-card cyber" onclick="setTheme('cyberpunk')">🧬 <span>Cyber</span></div>
-            <div class="aura-card fire" onclick="setTheme('inferno')">🔥 <span>Inferno</span></div>
+            <div class="aura-card" onclick="setTheme('default')">🌑 Classic</div>
+            <div class="aura-card cyber" onclick="setTheme('cyberpunk')">🧬 Cyber</div>
+            <div class="aura-card fire" onclick="setTheme('inferno')">🔥 Inferno</div>
         </div>
 
         <h3 class="section-label">💎 PERMANENT UPGRADES</h3>
         <div class="upgrade-list">
-            <button class="upgrade-row" onclick="buyPermanent('hp', 10)">
+            <div class="upgrade-row">
                 <span>❤️ +20 Max HP</span>
-                <span class="up-cost">10T</span>
-            </button>
-            <button class="upgrade-row" onclick="buyPermanent('luck', 25)">
+                <button class="up-btn" onclick="buyPermanent('hp', 10)">10T</button>
+            </div>
+            <div class="upgrade-row">
                 <span>🍀 +5% Luck</span>
-                <span class="up-cost">25T</span>
-            </button>
+                <button class="up-btn" onclick="buyPermanent('luck', 25)">25T</button>
+            </div>
         </div>
-        <button class="prestige-master-btn" id="prestige-btn" onclick="prestige()" style="display:none;">👑 PRESTIGE</button>
     </div>
 
     <div id="tab-hall" class="tab-content">
