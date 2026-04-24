@@ -1,12 +1,14 @@
+// INITIALIZE STATE
 let coins = Number(localStorage.getItem("coins")) || 1000;
 let tokens = Number(localStorage.getItem("tokens")) || 0;
 let currentLevel = Number(localStorage.getItem("level")) || 1;
-let prestigeCount = Number(localStorage.getItem("prestige")) || 0;
 let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100, luck: 0 };
+let currentTheme = localStorage.getItem("gameTheme") || "default";
 
 let p1HP = upgrades.hp, p2HP = 100;
+document.body.className = currentTheme;
 
-// AUDIO PATHS FIXED (ROOT FOLDER)
+// AUDIO (ROOT FOLDER PATHS)
 const sounds = {
     roll: new Audio('dice_roll.mp3'),
     win: new Audio('win_ding.mp3'),
@@ -24,6 +26,8 @@ function initAudio() {
 
 function handleSimpleLogin() {
     initAudio();
+    const nick = document.getElementById("nickname-input").value || "Player";
+    document.getElementById("display-username").textContent = nick;
     document.getElementById("home-screen").style.display = "none";
     document.getElementById("game-nav").style.display = "flex";
     document.getElementById("game-screen").style.display = "block";
@@ -32,8 +36,8 @@ function handleSimpleLogin() {
 
 function startBattle(type) {
     const bet = Number(document.getElementById("bet-input").value);
-    if (bet > coins) return alert("Not enough coins!");
-    
+    if (bet > coins) return alert("Insufficient Coins!");
+
     sounds.roll.play();
     setTimeout(() => {
         let p1 = (type === 'bsk') ? Math.floor(Math.random() * 12) + 1 : Math.floor(Math.random() * 6) + 1;
@@ -57,16 +61,29 @@ function startBattle(type) {
     }, 600);
 }
 
+function setTheme(t) {
+    document.body.className = t;
+    localStorage.setItem("gameTheme", t);
+    showFloatingText(`${t.toUpperCase()} ACTIVE`, "gold");
+}
+
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+    });
+    const target = document.getElementById(`tab-${tabName}`);
+    target.classList.add('active');
+    target.style.display = 'flex';
+}
+
 function buyPermanent(type, cost) {
     if (tokens >= cost) {
         tokens -= cost;
         if (type === 'hp') upgrades.hp += 20;
-        if (type === 'luck') upgrades.luck += 0.05;
-        p1HP = upgrades.hp; 
+        p1HP = upgrades.hp;
         localStorage.setItem("upgrades", JSON.stringify(upgrades));
         updateUI();
-    } else {
-        alert("Need more tokens!");
     }
 }
 
@@ -80,13 +97,6 @@ function updateUI() {
     localStorage.setItem("tokens", tokens);
     localStorage.setItem("level", currentLevel);
 }
-
-function showTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-    document.getElementById(`tab-${tab}`).style.display = 'block';
-}
-
-function setTheme(t) { document.body.className = t; }
 
 function showFloatingText(t, c) {
     const e = document.createElement("div"); e.className = `floating-text ${c}`; e.textContent = t;
