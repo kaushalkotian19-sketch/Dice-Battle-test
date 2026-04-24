@@ -6,85 +6,74 @@
   <title>Dice Battle Elite</title>
   <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<body id="game-body">
 
 <div id="celebration-overlay" class="overlay" style="display:none;">
     <div class="overlay-content">
-        <h1 class="glow-text">LEVEL UP!</h1>
-        <p>You've reached Level <span id="new-lvl">1</span></p>
+        <h1 id="celebration-title" class="glow-text">LEVEL UP!</h1>
+        <p id="celebration-desc">You've reached Level <span id="new-lvl">1</span></p>
         <button class="connect-btn" onclick="closeOverlay()">CONTINUE</button>
     </div>
 </div>
 
 <div id="home-screen" class="home">
   <h1 class="title">🎲 DICE <span>BATTLE</span></h1>
-  
   <div class="login-box">
-    <button id="chest-btn" class="connect-btn" style="background:#4ade80; margin-bottom:15px;" onclick="claimDailyReward()">🎁 Daily Chest</button>
+    <button class="connect-btn" style="background:#4ade80; margin-bottom:15px;" onclick="claimDailyReward()">🎁 Daily Chest</button>
     <input type="text" id="username-input" placeholder="Enter Nickname..." maxlength="12">
     <button class="connect-btn" onclick="handleSimpleLogin()">🚀 Enter Arena</button>
-  </div>
-
-  <div class="wallet-box">
-    <div class="wallet-balance">
-      <p>💰 Coins: <span id="coins">100</span></p>
-      <p>🪙 Tokens: <span id="tokens">0</span></p>
-    </div>
   </div>
 </div>
 
 <div id="game-screen" style="display:none;">
   <div class="game-container">
-    
     <div class="game-header">
       <div class="user-stats">
           <span id="display-username">Player</span> 
-          <span class="badge">LVL <span id="lvl-num">1</span></span>
+          <span class="badge" id="rank-tag">NOVICE</span>
+          <span class="badge gold">LVL <span id="lvl-num">1</span></span>
       </div>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
+    <div id="boss-warning" style="display:none; color:#ff4d4d; font-weight:bold; text-align:center; margin-bottom:10px; text-shadow: 0 0 10px #ff4d4d;">⚠️ BOSS ENCOUNTER ⚠️</div>
+
     <div class="players-row">
-      <div class="player" id="p1-card">
+      <div class="player glass-card" id="p1-card">
         <div class="hp-container"><div id="p1-hp" class="hp-bar"></div></div>
         <div class="p-label">YOU</div>
         <div class="dice"><img id="dice1" src="./assets/red-1.png"></div>
         <p class="score-label">Roll: <span id="score1">0</span></p>
       </div>
 
-      <div class="vs">VS</div>
+      <div class="vs-container">VS</div>
 
-      <div class="player" id="p2-card">
+      <div class="player glass-card" id="p2-card">
         <div class="hp-container"><div id="p2-hp" class="hp-bar"></div></div>
-        <div class="p-label">OPPONENT</div>
+        <div class="p-label" id="p2-label">OPPONENT</div>
         <div class="dice"><img id="dice2" src="./assets/green-1.png"></div>
         <p class="score-label">Roll: <span id="score2">0</span></p>
       </div>
     </div>
 
-    <div class="status-bar">
+    <div class="status-bar glass-panel">
         <div>🔥 Streak: <span id="win-streak">0</span></div>
-        <div>Bonus: <span id="multiplier">1x</span></div>
+        <div>🏆 Bosses: <span id="boss-count">0</span></div>
+        <div>Multiplier: <span id="multiplier">1x</span></div>
     </div>
 
     <div class="bet-section">
-      <input type="number" id="bet" value="10" min="1">
+      <input type="number" id="bet" value="10">
       <div class="roll-buttons">
         <button id="roll" class="btn-main standard">🎲 Standard</button>
         <button id="berserk" class="btn-main berserk">⚡ Berserk</button>
       </div>
     </div>
 
-    <div class="shop">
-        <button id="shield-btn" class="btn-shop" onclick="buyPowerUp('shield')">🛡️ Shield (20c)</button>
-        <button id="loaded-btn" class="btn-shop" onclick="buyPowerUp('loaded')">🎲 Loaded (30c)</button>
-    </div>
-
     <div class="footer-stats">
-      <p>Balance: 💰 <span id="coins-game">100</span></p>
+      <p>Balance: 💰 <span id="coins-game">0</span> | 🪙 <span id="tokens-game">0</span></p>
       <p class="result">Ready to Battle?</p>
     </div>
-
   </div>
 </div>
 
