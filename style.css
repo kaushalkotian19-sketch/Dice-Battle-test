@@ -1,39 +1,38 @@
 :root { --gold: #fbbf24; --glass: rgba(255, 255, 255, 0.08); }
 body { font-family: sans-serif; background: #020617; color: white; margin: 0; overflow: hidden; }
 
-/* FIXING DICE SIZE */
+/* DICE SCALE & ARENA */
 .battle-arena { display: flex; justify-content: space-around; align-items: center; min-height: 200px; padding: 10px; }
 .player-box { flex: 1; max-width: 140px; text-align: center; }
-.dice-space img { width: 100%; max-width: 100px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.dice-space img { width: 85px; height: 85px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin: 10px 0; }
 
-/* LAYOUT & SCROLLING */
-.main-scroll-area { height: calc(100vh - 140px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
-.tab-content { display: none; flex-direction: column; gap: 15px; }
-.tab-content.active { display: flex; }
+.hp-wrapper { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
+.hp-bar { height: 100%; background: #22c55e; transition: width 0.3s ease; }
 
-.nav-bar { display: flex; background: var(--glass); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
-.nav-bar button { flex: 1; padding: 15px; background: none; border: none; color: white; font-weight: bold; }
-
-/* PREMIUM BUTTONS */
+/* BUTTONS & ACTIONS */
+.action-zone { padding: 15px; display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
 .btn-battle { padding: 15px; border-radius: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); }
 .std-premium { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
 .bsk-premium { background: linear-gradient(135deg, #a855f7, #7e22ce); box-shadow: 0 4px 15px rgba(168,85,247,0.3); }
 
-/* FOOTER STATS */
-.wallet-bar { position: fixed; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: space-around; padding: 15px; font-weight: bold; }
+.status-msg { text-align: center; font-size: 0.9em; opacity: 0.8; margin-top: 5px; }
 
-/* AURA THEMES */
-body.cyberpunk { background: radial-gradient(circle, #0d1117 0%, #03001c 100%); }
+/* THEMES */
+body.cyberpunk { background: radial-gradient(circle, #0d1117, #03001c); }
 body.cyberpunk .glass { border-color: #00f2ff; box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
 
-body.inferno { background: radial-gradient(circle, #1a0000 0%, #000000 100%); }
-body.inferno .glass { border-color: #ff4d00; }
+body.inferno { background: radial-gradient(circle, #1a0000, #000000); }
+body.inferno .hp-bar { background: #ef4444; }
 
-.aura-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.aura-card { background: var(--glass); padding: 15px 5px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+/* VAULT STYLE */
+.upgrade-row { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+.up-btn { background: var(--gold); border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-.upgrade-row { width: 100%; display: flex; justify-content: space-between; padding: 15px; background: var(--glass); border: none; border-radius: 10px; color: white; margin-bottom: 10px; }
-.up-cost { background: var(--gold); color: black; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+/* NAVIGATION & LAYOUT */
+.main-scroll-area { height: calc(100vh - 140px); overflow-y: auto; padding: 15px; box-sizing: border-box; }
+.nav-bar { display: flex; background: var(--glass); backdrop-filter: blur(10px); }
+.nav-bar button { flex: 1; padding: 15px; background: none; border: none; color: white; font-weight: bold; }
+.wallet-bar { position: fixed; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: space-around; padding: 15px; font-weight: bold; }
 
-.floating-text { position: fixed; left: 50%; bottom: 30%; transform: translateX(-50%); font-weight: bold; animation: flyUp 1s forwards; z-index: 1000; }
-@keyframes flyUp { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -100px); } }
+.floating-text { position: fixed; left: 50%; bottom: 40%; transform: translateX(-50%); font-weight: bold; animation: fly 1s forwards; z-index: 1000; }
+@keyframes fly { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -100px); } }
