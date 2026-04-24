@@ -1,66 +1,56 @@
 :root {
-  --primary-gold: #fbbf24;
-  --boss-red: #ff4d4d;
-  --glass: rgba(255, 255, 255, 0.07);
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --gold: #fbbf24;
+  --bg: #020617;
+  --glass: rgba(255, 255, 255, 0.05);
 }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #05070a;
-    background: radial-gradient(circle at center, #0a132e, #02040a);
-    color: white; min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: white; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  overflow: hidden;
 }
 
-/* BOSS THEME */
-body.boss-theme {
-    background: radial-gradient(circle at center, #2e0505, #02040a) !important;
+body.boss-theme { background: radial-gradient(circle, #1e0000, #020617); }
+
+.game-container {
+  width: 95%; max-width: 400px; height: 100vh;
+  padding: 20px 10px; display: flex; flex-direction: column;
 }
 
-/* GLASSMORPHISM CARDS */
-.glass-card {
-    background: var(--glass);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 15px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
+/* HEADER & BADGES */
+.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.badge-rank { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 900; }
+.badge-lvl { background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
 
-.glass-panel {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(5px);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-}
+/* BATTLE AREA & DICE */
+.battle-arena { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.player-box { flex: 1; padding: 15px 5px; text-align: center; }
+.glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
 
-/* UI ELEMENTS */
-.vs-container {
-    font-weight: 900; font-size: 24px; opacity: 0.3;
-    text-shadow: 0 0 10px white;
-}
+.dice-space img { width: 70px; height: 70px; object-fit: contain; }
+.hp-wrapper { width: 80%; height: 5px; background: rgba(255,255,255,0.1); margin: 0 auto 10px; border-radius: 10px; overflow: hidden; }
+.hp-bar { height: 100%; background: #22c55e; transition: width 0.4s ease; }
 
-.badge {
-    background: #334155; color: white;
-    padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: bold;
-}
-.badge.gold { background: var(--primary-gold); color: black; }
+/* STATUS & ACTIONS */
+.status-panel { display: flex; justify-content: space-around; padding: 10px; margin-bottom: 15px; font-size: 14px; }
+.boss-alert { color: #ef4444; text-align: center; font-weight: 900; animation: blink 1s infinite; }
 
-.hp-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 10px; }
-.hp-bar { width: 100%; height: 100%; background: #00ff88; transition: width 0.5s ease; }
+#bet-input { width: 100%; background: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 10px; }
+.btn-group { display: flex; gap: 10px; }
+.btn-battle { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; color: white; cursor: pointer; }
+.std { background: linear-gradient(to bottom right, #f87171, #fb923c); }
+.bsk { background: linear-gradient(to bottom right, #c084fc, #f472b6); }
 
-/* BERSERK SHAKE */
+.wallet-footer { text-align: center; font-weight: bold; margin-top: auto; padding-bottom: 20px; }
+
+/* ANIMATIONS */
+@keyframes blink { 50% { opacity: 0; } }
 .dice-rolling { animation: shake 0.1s infinite; }
 @keyframes shake { 0% { transform: rotate(0); } 50% { transform: rotate(5deg); } 100% { transform: rotate(-5deg); } }
 
-/* BUTTONS */
-.btn-main { padding: 16px; border-radius: 15px; border: none; font-weight: bold; color: white; cursor: pointer; }
-.standard { background: linear-gradient(135deg, #ff5f6d, #ffc371); }
-.berserk { background: linear-gradient(135deg, #f093fb, #f5576c); }
-
-.overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; text-align: center;
-}
-.glow-text { color: var(--primary-gold); font-size: 40px; text-shadow: 0 0 20px var(--primary-gold); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.glow-text { color: var(--gold); text-shadow: 0 0 20px var(--gold); margin-bottom: 15px; }
