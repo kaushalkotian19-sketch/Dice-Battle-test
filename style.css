@@ -8,37 +8,44 @@
 body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
 body.boss-theme { background: radial-gradient(circle, #2e0505, #020617); }
 
-.game-container { width: 95%; max-width: 400px; margin: auto; padding: 10px 5px; height: 100vh; display: flex; flex-direction: column; }
+.game-container { width: 95%; max-width: 400px; margin: auto; padding: 10px; height: 100vh; display: flex; flex-direction: column; }
 
-/* VAULT */
+/* IMPACTS */
+.shake-effect { animation: screenShake 0.3s ease-in-out; }
+@keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) rotate(-1deg); }
+    75% { transform: translateX(5px) rotate(1deg); }
+}
+
+#floating-text-container { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 1000; }
+.floating-text { position: absolute; font-weight: 900; font-size: 24px; animation: floatUp 1s forwards; }
+.floating-text.gold { color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+.floating-text.red { color: #ff4d4d; text-shadow: 0 0 10px #ff4d4d; }
+@keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
+
+/* PRESTIGE */
+.prestige-btn { background: linear-gradient(45deg, #ff0055, #8800ff) !important; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+/* SHOP & SKINS */
 .vault-section { margin: 10px 0; padding: 10px; text-align: center; }
-.vault-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--gold); margin-bottom: 5px; }
-.skin-buttons { display: flex; gap: 5px; justify-content: center; }
-.btn-skin { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 9px; font-weight: bold; }
+.vault-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--gold); }
+.skin-buttons { display: flex; gap: 5px; justify-content: center; margin-top: 5px; }
+.btn-skin { padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 9px; font-weight: bold; }
 
-/* DICE & ARENA */
-.dice-space img { width: 60px; height: 60px; object-fit: contain; transition: all 0.3s; }
+.dice-space img { width: 60px; height: 60px; transition: all 0.3s; }
 .skin-neon { filter: drop-shadow(0 0 10px #00f2ff) brightness(1.2); }
 .skin-fire { filter: drop-shadow(0 0 10px #ff4d00) sepia(0.5); }
 .burning { animation: firePulse 0.5s infinite alternate; }
-@keyframes firePulse { from { filter: drop-shadow(0 0 5px #ff4d00); } to { filter: drop-shadow(0 0 20px #ff0000); transform: scale(1.05); } }
+@keyframes firePulse { from { filter: drop-shadow(0 0 5px #ff4d00); } to { filter: drop-shadow(0 0 20px #ff0000); transform: scale(1.1); } }
 
-.battle-arena { display: flex; align-items: center; gap: 5px; margin: 5px 0; }
-.player-box { flex: 1; padding: 10px 5px; text-align: center; }
-.glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; }
-
-/* UI ELEMENTS */
-.badge-rank { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #334155; }
-.badge-lvl { background: var(--gold); color: black; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+/* UI */
+.ability-tag { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; padding: 5px; border-radius: 5px; font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 10px; border: 1px solid #ff4d4d; }
 .hp-wrapper { width: 80%; height: 4px; background: rgba(255,255,255,0.1); margin: 0 auto 8px; border-radius: 10px; overflow: hidden; }
 .hp-bar { height: 100%; background: #22c55e; transition: width 0.4s ease; }
-.status-panel { display: flex; justify-content: space-around; padding: 8px; margin: 5px 0; font-size: 12px; }
+.glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; }
 .btn-battle { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; color: white; }
 .std { background: linear-gradient(to bottom right, #f87171, #fb923c); }
 .bsk { background: linear-gradient(to bottom right, #c084fc, #f472b6); }
-.boss-alert { color: #ef4444; font-weight: 900; text-align: center; font-size: 11px; margin-bottom: 5px; }
-.dice-rolling { animation: shake 0.1s infinite; }
-@keyframes shake { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(5deg); } }
-
-.wallet-footer { text-align: center; font-size: 14px; margin-top: auto; padding-bottom: 10px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; text-align: center; }
