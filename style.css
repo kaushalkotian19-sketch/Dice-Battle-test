@@ -28,11 +28,11 @@ body.boss-theme { background: radial-gradient(circle, #2e0505, #020617); }
 .prestige-btn { background: linear-gradient(45deg, #ff0055, #8800ff) !important; animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-/* SHOP & SKINS */
+/* VAULT & SKINS */
 .vault-section { margin: 10px 0; padding: 10px; text-align: center; }
 .vault-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--gold); }
 .skin-buttons { display: flex; gap: 5px; justify-content: center; margin-top: 5px; }
-.btn-skin { padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 9px; font-weight: bold; }
+.btn-skin { padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 9px; font-weight: bold; cursor: pointer; }
 
 .dice-space img { width: 60px; height: 60px; transition: all 0.3s; }
 .skin-neon { filter: drop-shadow(0 0 10px #00f2ff) brightness(1.2); }
@@ -45,7 +45,7 @@ body.boss-theme { background: radial-gradient(circle, #2e0505, #020617); }
 .hp-wrapper { width: 80%; height: 4px; background: rgba(255,255,255,0.1); margin: 0 auto 8px; border-radius: 10px; overflow: hidden; }
 .hp-bar { height: 100%; background: #22c55e; transition: width 0.4s ease; }
 .glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; }
-.btn-battle { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; color: white; }
+.btn-battle { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; color: white; cursor: pointer; }
 .std { background: linear-gradient(to bottom right, #f87171, #fb923c); }
 .bsk { background: linear-gradient(to bottom right, #c084fc, #f472b6); }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; text-align: center; }
