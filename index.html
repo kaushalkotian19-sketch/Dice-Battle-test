@@ -8,6 +8,8 @@
 </head>
 <body id="game-body">
 
+<div id="floating-text-container"></div>
+
 <div id="celebration-overlay" class="overlay" style="display:none;">
     <div class="overlay-content">
         <h1 id="celebration-title" class="glow-text">LEVEL UP!</h1>
@@ -26,7 +28,7 @@
 </div>
 
 <div id="game-screen" style="display:none;">
-  <div class="game-container">
+  <div class="game-container" id="main-container">
     <div class="game-header">
       <div class="user-stats">
           <span id="display-username">Player</span> 
@@ -37,6 +39,7 @@
     </div>
 
     <div id="boss-warning" class="boss-alert" style="display:none;">⚠️ BOSS ENCOUNTER ⚠️</div>
+    <div id="boss-ability" class="ability-tag" style="display:none;"></div>
 
     <div class="battle-arena">
       <div class="player-box glass" id="p1-card">
@@ -59,13 +62,14 @@
         <div class="skin-buttons">
             <button class="btn-skin" id="skin-neon" onclick="buySkin('neon', 50000)">💠 Neon</button>
             <button class="btn-skin" id="skin-fire" onclick="buySkin('fire', 250000)">🔥 Fire</button>
+            <button class="btn-skin prestige-btn" id="prestige-btn" onclick="prestige()" style="display:none;">👑 PRESTIGE</button>
         </div>
     </div>
 
     <div class="status-panel glass">
         <div class="stat">🔥 <span id="win-streak">0</span></div>
         <div class="stat">💀 <span id="boss-count">0</span></div>
-        <div class="stat">✨ <span id="multiplier">1x</span></div>
+        <div class="stat">✨ <span id="multiplier-display">1x</span></div>
     </div>
 
     <div class="action-zone">
