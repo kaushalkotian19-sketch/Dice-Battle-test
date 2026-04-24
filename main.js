@@ -22,7 +22,7 @@ sounds.bgm.volume = 0.3;
 
 function prestige() {
     if (coins < 1000000) return alert("Need 1,000,000 coins to Prestige!");
-    if (!confirm("Reset all progress for a permanent multiplier?")) return;
+    if (!confirm("Reset progress for a permanent 2x multiplier?")) return;
     prestigeCount++;
     coins = 100;
     currentLevel = 1;
@@ -36,7 +36,7 @@ function prestige() {
 
 function buySkin(skin, price) {
     if (ownedSkins.includes(skin)) {
-        activeSkin = activeSkin === skin ? "default" : skin;
+        activeSkin = (activeSkin === skin) ? "default" : skin;
     } else {
         if (coins < price) return alert("Need more coins!");
         coins -= price;
@@ -106,7 +106,7 @@ function startBattle(type) {
 
 function handleLevelUp() {
     if (currentLevel % 5 === 0) { bossesDefeated++; tokens += 5; }
-    currentLevel++; p1HP = 100; p2HP = 100;
+    currentLevel++; p1HP = 100;
     if (currentLevel === 15) frozenTurns = 3;
     p2HP = (currentLevel === 20) ? 200 : 100;
     triggerLevelUp();
@@ -152,6 +152,7 @@ function updateUI() {
     localStorage.setItem("coins", coins);
     localStorage.setItem("level", currentLevel);
     localStorage.setItem("bosses", bossesDefeated);
+    localStorage.setItem("tokens", tokens);
 }
 
 function handleSimpleLogin() {
