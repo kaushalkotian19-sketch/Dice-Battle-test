@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dice Battle Master</title>
+    <title>Dice Battle Elite</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="default">
@@ -12,9 +12,16 @@
     <div id="home-screen" class="home-container">
         <div class="dice-icon">🎲</div>
         <h1 class="main-title">DICE<span>BATTLE</span></h1>
+        <p class="subtitle">ELITE ARENA</p>
+        
         <div class="login-card glass">
             <input type="text" id="nickname-input" placeholder="Enter warrior name..." class="glass-input">
             <button onclick="enterArena()" class="enter-btn">🚀 ENTER ARENA</button>
+        </div>
+
+        <div class="footer-credit">
+            <p class="server-status"><span class="dot"></span> Global Server Online</p>
+            <p class="dev-name">Developed by Kaushal Kotian</p>
         </div>
     </div>
 
@@ -63,25 +70,36 @@
             <section id="tab-vault" class="tab-content">
                 <div class="daily-reward-card glass">
                     <h3>🎁 Daily Bonus</h3>
-                    <button class="enter-btn" onclick="claimDaily()">CLAIM FREE COINS</button>
+                    <button class="enter-btn-small" onclick="claimDaily()">CLAIM REWARD</button>
                 </div>
+
+                <h3>✨ AURA SELECTOR</h3>
+                <div class="aura-container glass">
+                    <button class="aura-btn active" onclick="setAura('classic')">🌑 Classic</button>
+                    <button class="aura-btn" onclick="setAura('cyber')">🧬 Cyber</button>
+                    <button class="aura-btn" onclick="setAura('inferno')">🔥 Inferno</button>
+                </div>
+
                 <h3>🛒 CONSUMABLES</h3>
                 <div class="shop-list">
-                    <div class="upgrade-row glass"><span>🧪 Potion</span><button class="up-btn" onclick="buyItem('potion', 200)">200c</button></div>
+                    <div class="upgrade-row glass"><span>🧪 Health Potion</span><button class="up-btn" onclick="buyItem('potion', 200)">200c</button></div>
                     <div class="upgrade-row glass"><span>🍀 Lucky Dice</span><button class="up-btn" onclick="buyItem('lucky', 300)">300c</button></div>
-                    <div class="upgrade-row glass"><span>🛡️ Shield</span><button class="up-btn" onclick="buyItem('shield', 500)">500c</button></div>
+                    <div class="upgrade-row glass"><span>🛡️ Battle Shield</span><button class="up-btn" onclick="buyItem('shield', 500)">500c</button></div>
                 </div>
-                <h3>💎 PERMANENTS</h3>
+
+                <h3>💎 PERMANENT SHOP</h3>
                 <div class="shop-list">
                     <div class="upgrade-row glass"><span>❤️ +20 Max HP</span><button class="up-btn" onclick="buyPermanent('hp')">10T</button></div>
-                    <div class="upgrade-row glass"><span>👑 Prestige</span><button class="up-btn prestige" onclick="handlePrestige()">RESET</button></div>
+                    <div class="upgrade-row glass"><span>👑 Prestige (LVL 50)</span><button class="up-btn prestige" onclick="handlePrestige()">RESET</button></div>
                 </div>
             </section>
 
             <section id="tab-hall" class="tab-content">
                 <h3>🏆 HALL OF FAME</h3>
-                <div id="leaderboard-ui" class="glass"></div>
-                <h3 style="margin-top:20px;">📜 QUESTS</h3>
+                <div id="leaderboard-ui" class="leaderboard-list glass">
+                    <div class="rank-item"><span>🥇 Champion</span><span id="champion-name">Kaushal</span></div>
+                </div>
+                <h3 style="margin-top:20px;">📜 ACTIVE QUESTS</h3>
                 <div class="quest-list glass">
                     <div class="rank-item"><span>🔥 Win Streak</span><span id="streak-count">0 / 5</span></div>
                 </div>
