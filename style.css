@@ -1,108 +1,89 @@
-/* ELITE THEME CONFIG */
 :root {
-    --primary: #fbbf24;
-    --bg-dark: #020617;
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --border: rgba(255, 255, 255, 0.1);
+    --elite-gold: #fbbf24;
+    --dark-void: #020617;
+    --glass-white: rgba(255, 255, 255, 0.05);
 }
-
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
     margin: 0;
-    padding: 0;
-    background-color: var(--bg-dark);
-    color: #fff;
-    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: var(--dark-void);
+    color: white;
+    font-family: 'Inter', sans-serif;
     overflow: hidden;
+    height: 100vh;
 }
 
 .glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
+    background: var(--glass-white);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
 }
 
-/* HOME SCREEN STYLES */
+/* HOME SCREEN */
 .home-container {
     height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
-    text-align: center;
-    padding: 20px;
+    background: radial-gradient(circle, #1e1b4b 0%, #020617 100%);
+    padding: 25px;
 }
 
-.main-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 5px; }
-.main-title span { color: var(--primary); }
+.title { font-size: 3.5rem; font-weight: 900; margin: 0; }
+.title span { color: var(--elite-gold); }
 
-.login-card {
-    width: 100%;
-    max-width: 380px;
-    padding: 40px 25px;
-    margin-top: 30px;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.5);
-}
+.auth-card { width: 100%; max-width: 360px; padding: 35px; margin-top: 25px; }
 
-.glass-input {
+.elite-input {
     width: 100%;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-    padding: 18px;
-    border-radius: 14px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 16px;
+    border-radius: 12px;
     color: white;
-    font-size: 1.1rem;
     margin-bottom: 15px;
 }
 
-.enter-btn {
+.gold-btn {
     width: 100%;
     padding: 18px;
     background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
     border: none;
-    border-radius: 14px;
+    border-radius: 12px;
     color: #000;
     font-weight: 800;
     font-size: 1.1rem;
-    box-shadow: 0 5px 20px rgba(217, 119, 6, 0.4);
-    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(217, 119, 6, 0.4);
 }
 
-/* GAME UI NAVIGATION */
-.top-nav {
+/* NAVIGATION */
+.nav-header {
     position: fixed;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
-    z-index: 100;
-}
-
-.content-tab {
-    display: none;
-    padding-top: 100px;
-    height: 100vh;
-}
-
-.content-tab.active { display: flex; flex-direction: column; }
-
-/* ARENA ELEMENTS */
-.battle-grid { display: flex; gap: 15px; padding: 20px; align-items: center; }
-.warrior-box { flex: 1; padding: 15px; text-align: center; }
-.dice-sprite { width: 100%; max-width: 140px; border-radius: 20px; }
-
-.wallet-nav {
-    position: fixed;
-    bottom: 20px;
+    top: 20px;
     left: 5%;
     width: 90%;
     display: flex;
     justify-content: space-around;
-    padding: 15px;
+    padding: 12px;
+    z-index: 1000;
+}
+
+.page-view { display: none; padding: 100px 20px; }
+.page-view.active { display: flex; flex-direction: column; }
+
+/* BATTLE ASSETS */
+.battle-floor { display: flex; gap: 12px; align-items: center; margin: 20px 0; }
+.fighter-slot { flex: 1; padding: 15px; text-align: center; }
+.dice-obj { width: 100%; max-width: 130px; border-radius: 18px; }
+
+.economy-bar {
+    position: fixed;
+    bottom: 25px;
+    left: 5%;
+    width: 90%;
+    display: flex;
+    justify-content: space-around;
+    padding: 18px;
 }
