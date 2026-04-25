@@ -1,11 +1,8 @@
 let coins = Number(localStorage.getItem("coins")) || 1000;
 let tokens = Number(localStorage.getItem("tokens")) || 0;
-let currentLevel = Number(localStorage.getItem("level")) || 1;
-let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100 };
-let currentTheme = localStorage.getItem("gameTheme") || "default";
-
+let level = Number(localStorage.getItem("level")) || 1;
+let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100, luck: 0, mult: 1 };
 let p1HP = upgrades.hp, p2HP = 100;
-document.body.className = currentTheme;
 
 const sounds = {
     roll: new Audio('dice_roll.mp3'),
@@ -15,18 +12,9 @@ const sounds = {
 };
 sounds.heartbeat.loop = true;
 
-function handleSimpleLogin() {
-    const nick = document.getElementById("nickname-input").value || "Player";
-    document.getElementById("display-username").textContent = nick;
-    document.getElementById("home-screen").style.display = "none";
-    document.getElementById("game-nav").style.display = "flex";
-    document.getElementById("game-screen").style.display = "block";
-    updateUI();
-}
-
 function startBattle(type) {
     const bet = Number(document.getElementById("bet-input").value);
-    if (bet > coins) return alert("Low Coins!");
+    if (bet > coins) return alert("Not enough coins!");
 
     document.getElementById("battle-status").textContent = "Rolling...";
     sounds.roll.play();
@@ -39,19 +27,27 @@ function startBattle(type) {
         document.getElementById("dice2").src = `./assets/green-${p2}.png`;
 
         if (p1 > p2) {
-            p2HP -= 34; coins += bet;
-            if (p2HP <= 0) { sounds.win.play(); currentLevel++; p2HP = 100; p1HP = upgrades.hp; }
+            let dmg = 34;
+            // Critical Strike Logic
+            if (Math.random() * 100 < upgrades.luck) {
+                dmg = 68;
+                showFloatingText("CRITICAL!", "gold");
+            }
+            p2HP -= dmg; 
+            coins += (bet * upgrades.mult);
+            if (p2HP <= 0) { 
+                sounds.win.play(); level++; 
+                p2HP = 100; p1HP = upgrades.hp; 
+            }
         } else {
             p1HP -= 20; coins -= bet;
             if (p1HP <= 0) { sounds.lose.play(); p1HP = upgrades.hp; p2HP = 100; }
         }
         
-        // HEARTBEAT LOGIC: Triggers at 30% of permanent max HP
-        if (p1HP < (upgrades.hp * 0.3)) { sounds.heartbeat.play(); } 
-        else { sounds.heartbeat.pause(); }
+        if (p1HP < (upgrades.hp * 0.3)) sounds.heartbeat.play();
+        else sounds.heartbeat.pause();
 
         updateUI();
-        document.getElementById("battle-status").textContent = "Ready to Battle?";
     }, 600);
 }
 
@@ -59,27 +55,38 @@ function buyPermanent(type, cost) {
     if (tokens >= cost) {
         tokens -= cost;
         if (type === 'hp') { upgrades.hp += 20; p1HP = upgrades.hp; }
+        if (type === 'luck') { upgrades.luck += 5; }
         localStorage.setItem("upgrades", JSON.stringify(upgrades));
         localStorage.setItem("tokens", tokens);
         updateUI();
+        showFloatingText("UPGRADED", "white");
     }
 }
 
 function updateUI() {
     document.getElementById("coins-game").textContent = Math.floor(coins).toLocaleString();
     document.getElementById("tokens-game").textContent = tokens;
-    document.getElementById("lvl-num").textContent = currentLevel;
+    document.getElementById("lvl-num").textContent = level;
+    document.getElementById("user-rank-val").textContent = "LVL " + level;
+    document.getElementById("mult-val").textContent = upgrades.mult + "x";
     document.getElementById("p1-hp").style.width = (p1HP / upgrades.hp * 100) + "%";
     document.getElementById("p2-hp").style.width = p2HP + "%";
     localStorage.setItem("coins", coins);
+    localStorage.setItem("level", level);
 }
 
 function showTab(t) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.getElementById(`tab-${t}`).style.display = 'flex';
 }
 
-function setTheme(t) { 
-    document.body.className = t; 
-    localStorage.setItem("gameTheme", t); 
+function setTheme(t) {
+    document.body.className = t;
+    localStorage.setItem("gameTheme", t);
+}
+
+function showFloatingText(t, c) {
+    const e = document.createElement("div"); e.className = `floating-text ${c}`; e.textContent = t;
+    document.getElementById("floating-text-container").appendChild(e);
+    setTimeout(() => e.remove(), 1000);
 }
