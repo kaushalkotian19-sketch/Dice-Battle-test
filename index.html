@@ -7,72 +7,86 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="classic-aura">
+
     <div id="home-screen" class="home-container">
+        <div class="floating-dice">🎲</div>
         <h1 class="main-title">DICE<span>BATTLE</span></h1>
+        <p class="subtitle">ELITE ARENA</p>
+        
         <div class="login-card glass">
             <input type="text" id="nickname-input" placeholder="Warrior name..." class="glass-input">
             <button onclick="enterArena()" class="enter-btn">🚀 ENTER ARENA</button>
         </div>
+
         <div class="footer-credit">
             <p class="server-status"><span class="dot"></span> Global Server Online</p>
             <p class="dev-name">Developed by Kaushal Kotian</p>
         </div>
     </div>
 
-    <nav id="game-nav" class="nav-bar glass" style="display: none;">
-        <button class="nav-btn active" onclick="showTab('arena')">⚔️ Arena</button>
-        <button class="nav-btn" onclick="showTab('vault')">✨ Vault</button>
-        <button class="nav-btn" onclick="showTab('hall')">🏆 Hall</button>
-    </nav>
+    <div id="game-container" style="display: none;">
+        <nav class="nav-bar glass">
+            <button class="nav-btn active" onclick="showTab('arena')">⚔️ Arena</button>
+            <button class="nav-btn" onclick="showTab('vault')">✨ Vault</button>
+            <button class="nav-btn" onclick="showTab('hall')">🏆 Hall</button>
+        </nav>
 
-    <main id="game-screen" style="display: none;">
-        
         <section id="tab-arena" class="tab-content active">
-            <p class="player-tag"><span id="display-username">Warrior</span> LVL <span id="lvl-num">1</span></p>
+            <p class="player-tag"><span id="display-username">Warrior</span> LVL <span id="lvl-num">27</span></p>
             <div class="battle-arena">
                 <div class="player-box glass">
                     <div class="hp-wrapper"><div id="p1-hp" class="hp-bar" style="width: 100%;"></div></div>
-                    <img src="red-dice.png" id="dice1" class="dice-img" alt="1">
+                    <img src="red-dice-1.png" id="dice1" class="dice-img">
                     <p>YOU</p>
                 </div>
                 <div class="vs-divider">VS</div>
                 <div class="player-box glass">
                     <div class="hp-wrapper"><div id="p2-hp" class="hp-bar" style="width: 100%;"></div></div>
-                    <img src="green-dice.png" id="dice2" class="dice-img" alt="1">
-                    <p id="cpu-label">CPU</p>
+                    <img src="green-dice-1.png" id="dice2" class="dice-img">
+                    <p>CPU</p>
                 </div>
             </div>
+
+            <div class="status-indicators">
+                <div class="stat-pill">🧪 <span id="potion-count">1</span></div>
+                <div class="stat-pill">🍀 <span id="luck-count">0</span></div>
+                <div class="stat-pill">🛡️ <span id="shield-count">0</span></div>
+            </div>
+
             <div class="action-zone glass">
-                <input type="number" id="bet-input" value="10" class="glass-input">
+                <input type="number" id="bet-input" value="10" class="bet-field">
                 <div class="btn-group">
-                    <button onclick="startBattle('std')" class="btn-battle std-premium">🎲 Standard</button>
-                    <button onclick="startBattle('bsk')" class="btn-battle bsk-premium">⚡ Berserk</button>
+                    <button onclick="rollDice('std')" class="btn-std">🎲 Standard</button>
+                    <button onclick="rollDice('bsk')" class="btn-bsk">⚡ Berserk</button>
                 </div>
+                <p class="battle-msg">Ready to Battle?</p>
             </div>
         </section>
 
         <section id="tab-vault" class="tab-content">
-            <div class="daily-reward-card glass">
+            <div class="card glass bonus-card">
                 <h3>🎁 Daily Bonus</h3>
-                <button class="up-btn" onclick="claimDaily()">CLAIM REWARD</button>
+                <button class="claim-btn" onclick="claimDaily()">CLAIM REWARD</button>
             </div>
-            <h3 class="section-title">✨ AURA SELECTOR</h3>
-            <div class="aura-container glass">
-                <button class="aura-btn active" onclick="setAura('classic')">🌑 Classic</button>
-                <button class="aura-btn" onclick="setAura('cyber')">🧬 Cyber</button>
+            
+            <h3 class="sec-label">🛒 CONSUMABLES</h3>
+            <div class="shop-grid">
+                <div class="shop-item glass"><span>🧪 Potion</span><button>200c</button></div>
+                <div class="shop-item glass"><span>🍀 Lucky Dice</span><button>300c</button></div>
             </div>
-            <h3 class="section-title">🛒 SHOP</h3>
-            <div class="shop-list glass">
-                <div class="upgrade-row"><span>🧪 Potion</span><button class="up-btn">200c</button></div>
+
+            <h3 class="sec-label">✨ AURA SELECTOR</h3>
+            <div class="aura-row">
+                <button class="aura-chip active" onclick="setAura('classic')">Classic</button>
+                <button class="aura-chip" onclick="setAura('cyber')">Cyber</button>
             </div>
         </section>
 
-    </main>
-
-    <div id="wallet" class="wallet-bar glass" style="display: none;">
-        <span>💰 <span id="coins-game">1000</span></span>
-        <span>🟡 <span id="tokens-game">0</span></span>
-        <span>✨ <span id="mult-display">1</span>x</span>
+        <div id="wallet" class="wallet-bar glass">
+            <span>💰 <span id="coins">226</span></span>
+            <span>🟡 <span id="tokens">12</span></span>
+            <span>✨ <span id="mult">1</span>x</span>
+        </div>
     </div>
 
     <script src="main.js"></script>
