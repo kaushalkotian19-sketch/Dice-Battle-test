@@ -9,84 +9,88 @@
 <body class="classic-aura">
 
     <div id="home-screen" class="home-container">
+        <div class="glow-effect"></div>
         <div class="floating-dice">🎲</div>
         <h1 class="main-title">DICE<span>BATTLE</span></h1>
         <p class="subtitle">ELITE ARENA</p>
         
         <div class="login-card glass">
             <input type="text" id="nickname-input" placeholder="Warrior name..." class="glass-input">
-            <button onclick="enterArena()" class="enter-btn">🚀 ENTER ARENA</button>
+            <button id="enter-btn" class="enter-btn">🚀 ENTER ARENA</button>
         </div>
 
-        <div class="footer-credit">
-            <p class="server-status"><span class="dot"></span> Global Server Online</p>
-            <p class="dev-name">Developed by Kaushal Kotian</p>
+        <div class="footer-status">
+            <p><span class="dot-online"></span> Global Server Online</p>
+            <p class="credit">Developed by Kaushal Kotian</p>
         </div>
     </div>
 
     <div id="game-container" style="display: none;">
-        <nav class="nav-bar glass">
-            <button class="nav-btn active" onclick="showTab('arena')">⚔️ Arena</button>
-            <button class="nav-btn" onclick="showTab('vault')">✨ Vault</button>
-            <button class="nav-btn" onclick="showTab('hall')">🏆 Hall</button>
+        <nav class="top-nav glass">
+            <button class="nav-item active" data-tab="arena">⚔️ Arena</button>
+            <button class="nav-item" data-tab="vault">✨ Vault</button>
+            <button class="nav-item" data-tab="hall">🏆 Hall</button>
         </nav>
 
-        <section id="tab-arena" class="tab-content active">
-            <p class="player-tag"><span id="display-username">Warrior</span> LVL <span id="lvl-num">27</span></p>
-            <div class="battle-arena">
-                <div class="player-box glass">
-                    <div class="hp-wrapper"><div id="p1-hp" class="hp-bar" style="width: 100%;"></div></div>
-                    <img src="red-dice-1.png" id="dice1" class="dice-img">
-                    <p>YOU</p>
+        <main id="arena-tab" class="content-tab active">
+            <div class="header-info">
+                <span id="display-name">Warrior</span>
+                <span class="lvl-badge">LVL 27</span>
+            </div>
+
+            <div class="battle-grid">
+                <div class="warrior-box glass" id="player-1">
+                    <div class="hp-container"><div id="hp-1" class="hp-fill" style="width:100%"></div></div>
+                    <img src="red-dice-1.png" id="dice-left" class="dice-sprite">
+                    <p class="label">YOU</p>
                 </div>
-                <div class="vs-divider">VS</div>
-                <div class="player-box glass">
-                    <div class="hp-wrapper"><div id="p2-hp" class="hp-bar" style="width: 100%;"></div></div>
-                    <img src="green-dice-1.png" id="dice2" class="dice-img">
-                    <p>CPU</p>
+
+                <div class="vs-badge">VS</div>
+
+                <div class="warrior-box glass" id="player-2">
+                    <div class="hp-container"><div id="hp-2" class="hp-fill" style="width:100%"></div></div>
+                    <img src="green-dice-1.png" id="dice-right" class="dice-sprite">
+                    <p class="label">CPU</p>
                 </div>
             </div>
 
-            <div class="status-indicators">
-                <div class="stat-pill">🧪 <span id="potion-count">1</span></div>
-                <div class="stat-pill">🍀 <span id="luck-count">0</span></div>
-                <div class="stat-pill">🛡️ <span id="shield-count">0</span></div>
+            <div class="inventory-bar">
+                <div class="item">🧪 <span id="pot-val">1</span></div>
+                <div class="item">🍀 <span id="luck-val">0</span></div>
+                <div class="item">🛡️ <span id="shld-val">0</span></div>
             </div>
 
-            <div class="action-zone glass">
-                <input type="number" id="bet-input" value="10" class="bet-field">
-                <div class="btn-group">
-                    <button onclick="rollDice('std')" class="btn-std">🎲 Standard</button>
-                    <button onclick="rollDice('bsk')" class="btn-bsk">⚡ Berserk</button>
+            <div class="controls glass">
+                <input type="number" id="bet-amount" value="10" class="bet-input">
+                <div class="actions">
+                    <button class="btn-roll std" onclick="game.roll('standard')">🎲 Standard</button>
+                    <button class="btn-roll bsk" onclick="game.roll('berserk')">⚡ Berserk</button>
                 </div>
-                <p class="battle-msg">Ready to Battle?</p>
+                <p id="battle-log">Ready to Battle?</p>
             </div>
-        </section>
+        </main>
 
-        <section id="tab-vault" class="tab-content">
-            <div class="card glass bonus-card">
+        <section id="vault-tab" class="content-tab">
+            <div class="daily-card glass">
                 <h3>🎁 Daily Bonus</h3>
-                <button class="claim-btn" onclick="claimDaily()">CLAIM REWARD</button>
+                <p>Claim free coins every 24h</p>
+                <button class="claim-btn">CLAIM REWARD</button>
             </div>
             
-            <h3 class="sec-label">🛒 CONSUMABLES</h3>
-            <div class="shop-grid">
-                <div class="shop-item glass"><span>🧪 Potion</span><button>200c</button></div>
-                <div class="shop-item glass"><span>🍀 Lucky Dice</span><button>300c</button></div>
-            </div>
-
-            <h3 class="sec-label">✨ AURA SELECTOR</h3>
-            <div class="aura-row">
-                <button class="aura-chip active" onclick="setAura('classic')">Classic</button>
-                <button class="aura-chip" onclick="setAura('cyber')">Cyber</button>
+            <div class="aura-section">
+                <h4>✨ AURA SELECTOR</h4>
+                <div class="chip-group">
+                    <button class="chip active" onclick="ui.setAura('classic')">Classic</button>
+                    <button class="chip" onclick="ui.setAura('cyber')">Cyber</button>
+                </div>
             </div>
         </section>
 
-        <div id="wallet" class="wallet-bar glass">
-            <span>💰 <span id="coins">226</span></span>
-            <span>🟡 <span id="tokens">12</span></span>
-            <span>✨ <span id="mult">1</span>x</span>
-        </div>
+        <footer class="wallet-nav glass">
+            <div class="stat">💰 <span id="coin-count">226</span></div>
+            <div class="stat">🟡 <span id="token-count">12</span></div>
+            <div class="stat">✨ <span id="multi-count">1x</span></div>
+        </footer>
     </div>
 
     <script src="main.js"></script>
