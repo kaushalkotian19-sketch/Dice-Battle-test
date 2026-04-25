@@ -32,7 +32,6 @@
             <span id="display-username">Player</span> 
             <span class="badge-lvl">LVL <span id="lvl-num">1</span></span>
         </div>
-
         <div class="battle-arena">
             <div class="player-box glass">
                 <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
@@ -46,7 +45,6 @@
                 <div class="roll-label">OPPONENT</div>
             </div>
         </div>
-
         <div class="action-zone glass">
             <input type="number" id="bet-input" value="10" class="bet-field">
             <div class="btn-group">
@@ -60,17 +58,34 @@
     <div id="tab-vault" class="tab-content">
         <h3 class="section-label">✨ AURA SELECTOR</h3>
         <div class="aura-grid">
-            <button class="aura-card" onclick="setTheme('default')">🌑 Classic</button>
-            <button class="aura-card cyber" onclick="setTheme('cyberpunk')">🧬 Cyber</button>
-            <button class="aura-card fire" onclick="setTheme('inferno')">🔥 Inferno</button>
+            <button class="aura-btn" onclick="setTheme('default')">🌑 Classic</button>
+            <button class="aura-btn cyber" onclick="setTheme('cyberpunk')">🧬 Cyber</button>
+            <button class="aura-btn fire" onclick="setTheme('inferno')">🔥 Inferno</button>
         </div>
 
-        <h3 class="section-label">💎 PERMANENT UPGRADES</h3>
+        <h3 class="section-label">💎 PERMANENT SHOP</h3>
         <div class="upgrade-list">
             <div class="upgrade-row">
                 <span>❤️ +20 Max HP</span>
                 <button class="up-btn" onclick="buyPermanent('hp', 10)">10T</button>
             </div>
+            <div class="upgrade-row">
+                <span>🍀 +5% Crit Luck</span>
+                <button class="up-btn" onclick="buyPermanent('luck', 25)">25T</button>
+            </div>
+            <div class="upgrade-row prestige-row">
+                <span>👑 Prestige (LVL 50)</span>
+                <button class="up-btn disabled" id="prestige-btn">RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-hall" class="tab-content">
+        <h3 class="section-label">🏆 GLOBAL HALL OF FAME</h3>
+        <div class="leaderboard glass">
+            <div class="rank-item"><span>1. Kratos</span> <span>LVL 99</span></div>
+            <div class="rank-item"><span>2. Shadow</span> <span>LVL 84</span></div>
+            <div class="rank-item current-user"><span>You</span> <span id="user-rank-val">LVL 1</span></div>
         </div>
     </div>
 
@@ -79,6 +94,7 @@
   <div class="wallet-bar glass">
     <span>💰 <span id="coins-game">0</span></span>
     <span>🪙 <span id="tokens-game">0</span></span>
+    <span>✨ <span id="mult-val">1x</span></span>
   </div>
 </div>
 
