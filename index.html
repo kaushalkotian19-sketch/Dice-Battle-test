@@ -6,9 +6,7 @@
     <title>Dice Battle Elite</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="default">
-    <canvas id="particle-canvas"></canvas>
-
+<body class="classic-aura">
     <div id="home-screen" class="home-container">
         <div class="dice-icon">🎲</div>
         <h1 class="main-title">DICE<span>BATTLE</span></h1>
@@ -26,85 +24,77 @@
     </div>
 
     <nav id="game-nav" class="nav-bar glass" style="display: none;">
-        <button onclick="showTab('arena')">⚔️ Arena</button>
-        <button onclick="showTab('vault')">✨ Vault</button>
-        <button onclick="showTab('hall')">🏆 Hall</button>
+        <button class="nav-btn active" onclick="showTab('arena', this)">⚔️ Arena</button>
+        <button class="nav-btn" onclick="showTab('vault', this)">✨ Vault</button>
+        <button class="nav-btn" onclick="showTab('hall', this)">🏆 Hall</button>
     </nav>
 
     <main id="game-screen" style="display: none;">
-        <div class="main-scroll-area">
+        
+        <section id="tab-arena" class="tab-content active">
+            <p class="player-tag"><span id="display-username">Warrior</span> <span class="badge">LVL <span id="lvl-num">1</span></span></p>
             
-            <section id="tab-arena" class="tab-content active">
-                <p class="player-tag"><span id="display-username">Warrior</span> <span class="badge">LVL <span id="lvl-num">1</span></span></p>
-                
-                <div class="battle-arena">
-                    <div class="player-box glass">
-                        <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="./assets/red-1.png" id="dice1" class="dice-img"></div>
-                        <p class="label">YOU</p>
-                    </div>
-                    <div class="vs-divider">VS</div>
-                    <div class="player-box glass">
-                        <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="./assets/green-1.png" id="dice2" class="dice-img"></div>
-                        <p class="label" id="cpu-label">CPU</p>
-                    </div>
+            <div class="battle-arena">
+                <div class="player-box glass">
+                    <div class="hp-wrapper"><div id="p1-hp" class="hp-bar" style="width: 100%;"></div></div>
+                    <div class="dice-space"><img src="dice-1.png" id="dice1" class="dice-img"></div>
+                    <p class="label">YOU</p>
                 </div>
+                <div class="vs-divider">VS</div>
+                <div class="player-box glass">
+                    <div class="hp-wrapper"><div id="p2-hp" class="hp-bar" style="width: 100%;"></div></div>
+                    <div class="dice-space"><img src="dice-1.png" id="dice2" class="dice-img"></div>
+                    <p class="label" id="cpu-label">CPU</p>
+                </div>
+            </div>
 
-                <div class="item-bar glass">
-                    <button class="item-btn" onclick="useItem('potion')">🧪 <span id="count-potion">0</span></button>
-                    <button class="item-btn" onclick="useItem('lucky')">🍀 <span id="count-lucky">0</span></button>
-                    <button class="item-btn" onclick="useItem('shield')">🛡️ <span id="count-shield">0</span></button>
-                </div>
+            <div class="item-bar glass">
+                <button class="item-btn" onclick="useItem('potion')">🧪 <span id="count-potion">0</span></button>
+                <button class="item-btn" onclick="useItem('lucky')">🍀 <span id="count-lucky">0</span></button>
+                <button class="item-btn" onclick="useItem('shield')">🛡️ <span id="count-shield">0</span></button>
+            </div>
 
-                <div class="action-zone glass">
-                    <input type="number" id="bet-input" value="10" class="glass-input bet-field">
-                    <div class="btn-group">
-                        <button onclick="startBattle('std')" class="btn-battle std-premium">🎲 Standard</button>
-                        <button onclick="startBattle('bsk')" class="btn-battle bsk-premium">⚡ Berserk</button>
-                    </div>
-                    <p id="battle-status">Ready to Battle?</p>
+            <div class="action-zone glass">
+                <input type="number" id="bet-input" value="10" class="glass-input bet-field">
+                <div class="btn-group">
+                    <button onclick="startBattle('std')" class="btn-battle std-premium">🎲 Standard</button>
+                    <button onclick="startBattle('bsk')" class="btn-battle bsk-premium">⚡ Berserk</button>
                 </div>
-            </section>
+                <p id="battle-status">Ready to Battle?</p>
+            </div>
+        </section>
 
-            <section id="tab-vault" class="tab-content">
-                <div class="daily-reward-card glass">
-                    <h3>🎁 Daily Bonus</h3>
-                    <button class="enter-btn-small" onclick="claimDaily()">CLAIM REWARD</button>
-                </div>
+        <section id="tab-vault" class="tab-content">
+            <div class="daily-reward-card glass">
+                <h3>🎁 Daily Bonus</h3>
+                <button class="enter-btn-small" onclick="claimDaily()">CLAIM REWARD</button>
+            </div>
 
-                <h3>✨ AURA SELECTOR</h3>
-                <div class="aura-container glass">
-                    <button class="aura-btn active" onclick="setAura('classic')">🌑 Classic</button>
-                    <button class="aura-btn" onclick="setAura('cyber')">🧬 Cyber</button>
-                    <button class="aura-btn" onclick="setAura('inferno')">🔥 Inferno</button>
-                </div>
+            <h3 class="section-title">✨ AURA SELECTOR</h3>
+            <div class="aura-container glass">
+                <button class="aura-btn active" onclick="setAura('classic')">🌑 Classic</button>
+                <button class="aura-btn" onclick="setAura('cyber')">🧬 Cyber</button>
+                <button class="aura-btn" onclick="setAura('inferno')">🔥 Inferno</button>
+            </div>
 
-                <h3>🛒 CONSUMABLES</h3>
-                <div class="shop-list">
-                    <div class="upgrade-row glass"><span>🧪 Health Potion</span><button class="up-btn" onclick="buyItem('potion', 200)">200c</button></div>
-                    <div class="upgrade-row glass"><span>🍀 Lucky Dice</span><button class="up-btn" onclick="buyItem('lucky', 300)">300c</button></div>
-                    <div class="upgrade-row glass"><span>🛡️ Battle Shield</span><button class="up-btn" onclick="buyItem('shield', 500)">500c</button></div>
-                </div>
+            <h3 class="section-title">🛒 SHOP</h3>
+            <div class="shop-list glass">
+                <div class="upgrade-row"><span>🧪 Potion</span><button class="up-btn" onclick="buyItem('potion', 200)">200c</button></div>
+                <div class="upgrade-row"><span>❤️ +20 Max HP</span><button class="up-btn" onclick="buyPermanent('hp')">10T</button></div>
+            </div>
+        </section>
 
-                <h3>💎 PERMANENT SHOP</h3>
-                <div class="shop-list">
-                    <div class="upgrade-row glass"><span>❤️ +20 Max HP</span><button class="up-btn" onclick="buyPermanent('hp')">10T</button></div>
-                    <div class="upgrade-row glass"><span>👑 Prestige (LVL 50)</span><button class="up-btn prestige" onclick="handlePrestige()">RESET</button></div>
-                </div>
-            </section>
+        <section id="tab-hall" class="tab-content">
+            <h3 class="section-title">🏆 HALL OF FAME</h3>
+            <div class="leaderboard-list glass">
+                <div class="rank-item"><span>🥇 Champion</span><span id="champion-name">Kaushal</span></div>
+            </div>
+            <h3 class="section-title">📜 QUESTS</h3>
+            <div class="quest-list glass">
+                <div class="rank-item"><span>🔥 Win Streak</span><span id="streak-count">0 / 5</span></div>
+            </div>
+        </section>
 
-            <section id="tab-hall" class="tab-content">
-                <h3>🏆 HALL OF FAME</h3>
-                <div id="leaderboard-ui" class="leaderboard-list glass">
-                    <div class="rank-item"><span>🥇 Champion</span><span id="champion-name">Kaushal</span></div>
-                </div>
-                <h3 style="margin-top:20px;">📜 ACTIVE QUESTS</h3>
-                <div class="quest-list glass">
-                    <div class="rank-item"><span>🔥 Win Streak</span><span id="streak-count">0 / 5</span></div>
-                </div>
-            </section>
-        </div>
     </main>
 
     <div id="wallet" class="wallet-bar glass" style="display: none;">
