@@ -1,37 +1,154 @@
-:root { --gold: #fbbf24; --glass: rgba(255, 255, 255, 0.08); --cyber: #a855f7; }
-body { font-family: sans-serif; background: #020617; color: white; margin: 0; height: 100vh; overflow: hidden; }
+:root {
+    --gold: #fbbf24;
+    --glass: rgba(255, 255, 255, 0.08);
+    --cyber: #a855f7;
+    --inferno: #ef4444;
+}
 
-/* FIXED TAB LAYOUT */
-.main-scroll-area { height: calc(100vh - 150px); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
-.tab-content { display: none; flex-direction: column; width: 100%; gap: 15px; }
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #020617;
+    color: white;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* --- HOME SCREEN --- */
+.home-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+    text-align: center;
+}
+
+.hero-section { margin-bottom: 30px; }
+.dice-icon { font-size: 5rem; margin-bottom: 10px; filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.4)); }
+.main-title { font-size: 2.5rem; letter-spacing: 4px; margin: 0; font-weight: 900; }
+.main-title span { color: var(--gold); }
+.subtitle { color: #94a3b8; letter-spacing: 5px; font-size: 0.8rem; margin-top: 5px; }
+
+.login-card {
+    width: 85%;
+    max-width: 350px;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.glass {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+}
+
+.glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+}
+
+.enter-btn {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    color: black;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(217, 119, 6, 0.3);
+}
+
+/* --- GAME NAVIGATION --- */
+.nav-bar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 100;
+    border-radius: 0 0 15px 15px;
+}
+
+.nav-bar button {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.nav-bar button:active { color: var(--gold); }
+
+/* --- MAIN GAME AREA --- */
+.main-scroll-area {
+    height: calc(100vh - 160px);
+    margin-top: 60px;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.tab-content { display: none; flex-direction: column; gap: 20px; }
 .tab-content.active { display: flex; }
 
-/* AURA BUTTONS RESTORED */
-.aura-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.aura-btn { 
-    padding: 15px 5px; 
-    background: var(--glass); 
-    border: 1px solid rgba(255,255,255,0.1); 
-    color: white; 
-    border-radius: 12px; 
-    font-weight: bold; 
-    cursor: pointer;
-}
+.section-label { font-size: 0.8rem; letter-spacing: 2px; color: #64748b; margin-bottom: 5px; }
+
+/* --- BATTLE UI --- */
+.battle-arena { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; }
+.player-box { flex: 1; padding: 15px; text-align: center; position: relative; }
+.hp-wrapper { width: 100%; height: 6px; background: #334155; border-radius: 3px; margin-bottom: 15px; overflow: hidden; }
+.hp-bar { height: 100%; background: #22c55e; transition: width 0.3s; }
+.dice-space img { width: 80px; height: 80px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+
+/* --- VAULT & SHOP --- */
+.aura-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.aura-btn { padding: 15px 5px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; font-weight: bold; cursor: pointer; }
 .aura-btn.cyber { border-color: var(--cyber); color: var(--cyber); }
-.aura-btn.fire { border-color: #ef4444; color: #ef4444; }
+.aura-btn.fire { border-color: var(--inferno); color: var(--inferno); }
 
-/* LEADERBOARD */
-.leaderboard { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-.rank-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.current-user { background: rgba(251, 191, 36, 0.1); color: var(--gold); border-radius: 8px; }
+.upgrade-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--glass); border-radius: 12px; margin-bottom: 10px; }
+.up-btn { background: var(--gold); color: black; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-/* UPGRADES */
-.upgrade-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--glass); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
-.up-btn { background: var(--gold); color: black; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-.up-btn.disabled { background: #475569; cursor: not-allowed; }
+/* --- WALLET BAR --- */
+.wallet-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-radius: 15px 15px 0 0;
+}
 
-/* NEON GLOW FOR CYBER THEME */
-body.cyberpunk #dice1, body.cyberpunk #dice2 { box-shadow: 0 0 15px var(--cyber); border-radius: 15px; }
-body.inferno #dice1 { filter: drop-shadow(0 0 10px #ef4444); }
+/* --- THEMES --- */
+body.cyberpunk { background: radial-gradient(circle at center, #2e1065 0%, #020617 100%); }
+body.cyberpunk #dice1, body.cyberpunk #dice2 { box-shadow: 0 0 15px var(--cyber); }
+body.inferno { background: radial-gradient(circle at center, #450a0a 0%, #020617 100%); }
+body.inferno #dice1 { filter: drop-shadow(0 0 10px var(--inferno)); }
 
-.glass { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; }
+/* --- FLOATING TEXT --- */
+.floating-text {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 900;
+    font-size: 2rem;
+    pointer-events: none;
+    z-index: 1000;
+    animation: floatUp 1s forwards;
+}
+@keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -150%); } }
