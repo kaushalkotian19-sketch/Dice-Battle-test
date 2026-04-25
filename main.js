@@ -1,31 +1,56 @@
+// GLOBAL STATE
+let playerCoins = 226;
+let playerTokens = 12;
+
+// SCREEN TRANSITION
 function enterArena() {
+    const name = document.getElementById('nickname-input').value;
+    if(!name) {
+        alert("Enter your Warrior Name!");
+        return;
+    }
+    document.getElementById('display-username').innerText = name;
     document.getElementById('home-screen').style.display = 'none';
-    document.getElementById('game-nav').style.display = 'flex';
-    document.getElementById('game-screen').style.display = 'block';
-    document.getElementById('wallet').style.display = 'flex';
+    document.getElementById('game-container').style.display = 'block';
 }
 
+// TAB SWITCHING
 function showTab(tabId) {
-    // Hide all
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    
-    // Show active
-    document.getElementById(`tab-${tabId}`).classList.add('active');
-    event.currentTarget.classList.add('active');
-}
-
-function setAura(type) {
-    document.body.className = `${type}-aura`;
-    document.querySelectorAll('.aura-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.innerText.toLowerCase().includes(type));
+    // 1. Reset all tabs and buttons
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
     });
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // 2. Activate the selected one
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    
+    // 3. Highlight the clicked button
+    const activeBtn = Array.from(document.querySelectorAll('.nav-btn'))
+                           .find(btn => btn.innerText.toLowerCase().includes(tabId));
+    if(activeBtn) activeBtn.classList.add('active');
 }
 
-function startBattle(mode) {
-    const d1 = Math.floor(Math.random() * 6) + 1;
-    const d2 = Math.floor(Math.random() * 6) + 1;
-    // Note: Ensure images like dice-1.png exist in your folder
-    document.getElementById('dice1').src = `dice-${d1}.png`;
-    document.getElementById('dice2').src = `dice-${d2}.png`;
+// BATTLE LOGIC
+function rollDice(mode) {
+    const roll1 = Math.floor(Math.random() * 6) + 1;
+    const roll2 = Math.floor(Math.random() * 6) + 1;
+
+    // Use your existing image naming convention
+    document.getElementById('dice1').src = `red-dice-${roll1}.png`;
+    document.getElementById('dice2').src = `green-dice-${roll2}.png`;
+
+    // Sound effect trigger
+    const sfx = new Audio('dice_roll.mp3');
+    sfx.play();
+}
+
+// AURA LOGIC
+function setAura(auraType) {
+    document.body.className = `${auraType}-aura`;
+    document.querySelectorAll('.aura-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.innerText.toLowerCase() === auraType);
+    });
 }
