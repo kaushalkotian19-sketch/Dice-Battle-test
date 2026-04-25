@@ -1,56 +1,74 @@
-// GLOBAL STATE
-let playerCoins = 226;
-let playerTokens = 12;
+// --- DOM ELEMENTS ---
+const homeScreen = document.getElementById('home-screen');
+const gameContainer = document.getElementById('game-container');
+const enterBtn = document.getElementById('enter-btn');
+const nicknameInput = document.getElementById('nickname-input');
 
-// SCREEN TRANSITION
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach listener to button
+    enterBtn.addEventListener('click', enterArena);
+
+    // Tab switching logic
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            showTab(tabId);
+        });
+    });
+});
+
+// --- TRANSITION LOGIC ---
 function enterArena() {
-    const name = document.getElementById('nickname-input').value;
-    if(!name) {
-        alert("Enter your Warrior Name!");
+    const warriorName = nicknameInput.value.trim();
+    
+    if (warriorName === "") {
+        alert("Enter your Warrior Name first!");
         return;
     }
-    document.getElementById('display-username').innerText = name;
-    document.getElementById('home-screen').style.display = 'none';
-    document.getElementById('game-container').style.display = 'block';
+
+    // Update UI name
+    document.getElementById('display-name').innerText = warriorName;
+
+    // Transition [Fixes the blank screen issue]
+    homeScreen.style.display = 'none';
+    gameContainer.style.display = 'block';
+
+    // Play entry sound
+    new Audio('ambient_synth.mp3').play().catch(() => console.log("Audio waiting for user interaction"));
 }
 
-// TAB SWITCHING
-function showTab(tabId) {
-    // 1. Reset all tabs and buttons
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+// --- TAB CONTROL ---
+function showTab(tabName) {
+    // Reset tabs
+    document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
-    // 2. Activate the selected one
-    document.getElementById(`tab-${tabId}`).classList.add('active');
+    // Activate selected
+    document.getElementById(`${tabName}-tab`).classList.add('active');
     
-    // 3. Highlight the clicked button
-    const activeBtn = Array.from(document.querySelectorAll('.nav-btn'))
-                           .find(btn => btn.innerText.toLowerCase().includes(tabId));
-    if(activeBtn) activeBtn.classList.add('active');
+    // Highlight button
+    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
 }
 
-// BATTLE LOGIC
-function rollDice(mode) {
-    const roll1 = Math.floor(Math.random() * 6) + 1;
-    const roll2 = Math.floor(Math.random() * 6) + 1;
+// --- GAME LOGIC OBJECT ---
+const game = {
+    roll: function(type) {
+        const r1 = Math.floor(Math.random() * 6) + 1;
+        const r2 = Math.floor(Math.random() * 6) + 1;
 
-    // Use your existing image naming convention
-    document.getElementById('dice1').src = `red-dice-${roll1}.png`;
-    document.getElementById('dice2').src = `green-dice-${roll2}.png`;
+        // Image Update
+        document.getElementById('dice-left').src = `red-dice-${r1}.png`;
+        document.getElementById('dice-right').src = `green-dice-${r2}.png`;
 
-    // Sound effect trigger
-    const sfx = new Audio('dice_roll.mp3');
-    sfx.play();
-}
+        document.getElementById('battle-log').innerText = `Rolled ${r1} vs ${r2}!`;
+        new Audio('dice_roll.mp3').play();
+    }
+};
 
-// AURA LOGIC
-function setAura(auraType) {
-    document.body.className = `${auraType}-aura`;
-    document.querySelectorAll('.aura-chip').forEach(chip => {
-        chip.classList.toggle('active', chip.innerText.toLowerCase() === auraType);
-    });
-}
+const ui = {
+    setAura: function(type) {
+        document.body.className = `${type}-aura`;
+    }
+};
