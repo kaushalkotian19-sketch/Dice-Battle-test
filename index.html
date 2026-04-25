@@ -36,13 +36,17 @@
                 <div class="battle-arena">
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="./assets/red-1.png" id="dice1"></div>
+                        <div class="dice-space">
+                            <img src="./assets/red-1.png" id="dice1" class="dice-img">
+                        </div>
                         <p class="label">YOU</p>
                     </div>
                     <div class="vs-divider">VS</div>
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="./assets/green-1.png" id="dice2"></div>
+                        <div class="dice-space">
+                            <img src="./assets/green-1.png" id="dice2" class="dice-img">
+                        </div>
                         <p class="label">CPU</p>
                     </div>
                 </div>
@@ -61,7 +65,7 @@
                 <div class="daily-reward-card glass">
                     <h3>🎁 Daily Bonus</h3>
                     <p>Claim free coins every 24h</p>
-                    <button class="enter-btn" id="claim-btn" onclick="claimDaily()">CLAIM REWARD</button>
+                    <button class="enter-btn-small" id="claim-btn" onclick="claimDaily()">CLAIM REWARD</button>
                 </div>
 
                 <h3>✨ AURA SELECTOR</h3>
