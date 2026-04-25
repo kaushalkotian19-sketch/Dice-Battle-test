@@ -1,4 +1,4 @@
-// --- STATE ---
+// --- INITIAL STATE ---
 let coins = Number(localStorage.getItem("coins")) || 1000;
 let tokens = Number(localStorage.getItem("tokens")) || 0;
 let level = Number(localStorage.getItem("level")) || 1;
@@ -7,16 +7,9 @@ let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100, luck: 
 let inv = JSON.parse(localStorage.getItem("inv")) || { potion: 0, lucky: 0, shield: 0 };
 let p1HP = upgrades.hp, p2HP = 100, activeShield = false;
 
-const sounds = {
-    roll: new Audio('dice_roll.mp3'),
-    win: new Audio('win_ding.mp3'),
-    lose: new Audio('lose_thud.mp3')
-};
-
-// --- CORE ---
+// --- CORE NAVIGATION ---
 function enterArena() {
     const nick = document.getElementById("nickname-input").value || "Warrior";
-    localStorage.setItem("dice_nick", nick);
     document.getElementById("display-username").textContent = nick;
     document.getElementById("home-screen").style.display = "none";
     document.querySelectorAll("#game-nav, #game-screen, #wallet").forEach(el => el.style.display = "flex");
@@ -28,16 +21,18 @@ function showTab(id) {
     document.getElementById(`tab-${id}`).classList.add('active');
 }
 
-// --- BATTLE ENGINE ---
+// --- BATTLE LOGIC ---
 function startBattle(mode) {
     const bet = Math.floor(Number(document.getElementById("bet-input").value));
-    if (coins < bet || bet <= 0) return alert("Invalid Balance/Bet");
+    if (coins < bet || bet <= 0) return alert("Insufficient Balance!");
 
     const isBoss = level % 10 === 0;
-    if (isBoss && p2HP === 100) p2HP = 500;
+    if (isBoss && p2HP === 100) {
+        p2HP = 500;
+        document.getElementById("cpu-label").textContent = "BOSS";
+    }
 
     document.querySelectorAll(".dice-img").forEach(i => i.classList.add("shake"));
-    sounds.roll.play().catch(() => {});
 
     setTimeout(() => {
         document.querySelectorAll(".dice-img").forEach(i => i.classList.remove("shake"));
@@ -54,28 +49,26 @@ function startBattle(mode) {
             let dmg = (Math.random() * 100 < upgrades.luck) ? 68 : 34;
             p2HP -= dmg;
             if (p2HP <= 0) {
-                let reward = isBoss ? bet * 5 : bet * upgrades.mult;
-                coins += reward;
+                coins += isBoss ? bet * 5 : bet * upgrades.mult;
                 tokens += isBoss ? 5 : 2;
-                level++;
+                level++; winStreak++;
                 p2HP = 100; p1HP = upgrades.hp;
-                sounds.win.play();
+                document.getElementById("cpu-label").textContent = "CPU";
                 spawnExplosion("#fbbf24");
-                winStreak++;
                 if (winStreak >= 5) { tokens += 2; winStreak = 0; }
             }
         } else {
-            if (activeShield) { activeShield = false; showFloatingText("SHIELD BLOCKED!", "#3b82f6"); }
+            if (activeShield) { activeShield = false; } 
             else { p1HP -= 20; coins -= bet; winStreak = 0; }
-            if (p1HP <= 0) { p1HP = upgrades.hp; p2HP = 100; sounds.lose.play(); }
+            if (p1HP <= 0) { p1HP = upgrades.hp; p2HP = 100; }
         }
         updateUI();
     }, 600);
 }
 
-// --- ITEMS & SHOP ---
+// --- SHOP & ITEMS ---
 function buyItem(item, price) {
-    if (coins < price) return alert("No coins!");
+    if (coins < price) return alert("Not enough coins!");
     coins -= price; inv[item]++; updateUI();
 }
 
@@ -88,18 +81,14 @@ function useItem(item) {
     updateUI();
 }
 
-function claimDaily() {
-    const last = localStorage.getItem("lDaily");
-    if (last && (Date.now() - last < 86400000)) return alert("Wait 24h");
-    coins += 200; localStorage.setItem("lDaily", Date.now()); updateUI();
+function setAura(type) {
+    document.body.className = type + "-aura";
+    document.querySelectorAll('.aura-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.toLowerCase().includes(type));
+    });
 }
 
-function buyPermanent(type) {
-    if (tokens < 10) return alert("Need 10T");
-    tokens -= 10; upgrades.hp += 20; p1HP = upgrades.hp; updateUI();
-}
-
-// --- UI & PARTICLES ---
+// --- UI REFRESH ---
 function updateUI() {
     document.getElementById("coins-game").textContent = Math.floor(coins);
     document.getElementById("tokens-game").textContent = tokens;
@@ -109,11 +98,13 @@ function updateUI() {
     document.getElementById("count-shield").textContent = inv.shield;
     document.getElementById("streak-count").textContent = `${winStreak} / 5`;
     document.getElementById("p1-hp").style.width = (p1HP/upgrades.hp*100) + "%";
-    document.getElementById("p2-hp").style.width = (p2HP/(level%10===0?500:100)*100) + "%";
     
-    const gs = document.getElementById("game-screen");
-    p1HP < upgrades.hp * 0.3 ? gs.classList.add("low-hp-warning") : gs.classList.remove("low-hp-warning");
+    const bossMax = (level % 10 === 0) ? 500 : 100;
+    document.getElementById("p2-hp").style.width = (p2HP/bossMax*100) + "%";
     
+    if (p1HP < upgrades.hp * 0.3) document.getElementById("game-screen").classList.add("low-hp-warning");
+    else document.getElementById("game-screen").classList.remove("low-hp-warning");
+
     localStorage.setItem("coins", coins);
     localStorage.setItem("tokens", tokens);
     localStorage.setItem("level", level);
@@ -121,7 +112,7 @@ function updateUI() {
     localStorage.setItem("upgrades", JSON.stringify(upgrades));
 }
 
-// Particle System
+// --- PARTICLE EFFECT ---
 const canvas = document.getElementById("particle-canvas");
 const ctx = canvas.getContext("2d");
 let parts = [];
@@ -138,10 +129,4 @@ function renderParts() {
         if(p.o<=0) parts.splice(i,1);
     });
     if(parts.length>0) requestAnimationFrame(renderParts);
-}
-
-function showFloatingText(t, c) {
-    const e = document.createElement("div"); e.className="floating-text";
-    e.textContent=t; e.style.color=c; document.body.appendChild(e);
-    setTimeout(()=>e.remove(), 1000);
 }
