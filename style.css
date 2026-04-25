@@ -5,10 +5,10 @@
     --inferno: #ef4444;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     background: #020617;
     color: white;
     margin: 0;
@@ -16,7 +16,7 @@ body {
     overflow: hidden;
 }
 
-/* --- HOME SCREEN --- */
+/* HOME & UTILS */
 .home-container {
     height: 100vh;
     display: flex;
@@ -27,95 +27,49 @@ body {
     text-align: center;
 }
 
-.dice-icon { font-size: 5rem; margin-bottom: 10px; }
 .main-title { font-size: 2.5rem; letter-spacing: 5px; font-weight: 900; margin: 0; }
 .main-title span { color: var(--gold); }
-.subtitle { opacity: 0.6; letter-spacing: 3px; font-size: 0.8rem; margin-top: 5px; }
+.glass { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; }
 
-.login-card {
-    width: 85%;
-    max-width: 350px;
-    padding: 30px;
-    margin-top: 30px;
-    border-radius: 20px;
+/* BATTLE & ANIMATION */
+.shake { animation: dice-shake 0.5s infinite; }
+@keyframes dice-shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+    100% { transform: rotate(0deg); }
 }
 
-.glass { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+.hp-bar { height: 100%; background: #22c55e; transition: width 0.4s ease; }
 
-.glass-input {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 15px;
-    border-radius: 12px;
-    color: white;
-    text-align: center;
-    margin-bottom: 15px;
-}
+/* PREMIUM BUTTONS */
+.btn-battle { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; }
+.std-premium { background: linear-gradient(135deg, #f59e0b, #d97706); color: black; box-shadow: 0 0 15px rgba(217, 119, 6, 0.4); }
+.bsk-premium { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
 
-.enter-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #fbbf24, #d97706);
-    color: black;
-    border: none;
-    padding: 15px;
-    border-radius: 12px;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
-}
-
-/* --- ARENA --- */
-.nav-bar { position: fixed; top: 0; width: 100%; height: 60px; display: flex; justify-content: space-around; align-items: center; z-index: 100; border-top: none; }
-.nav-bar button { background: none; border: none; color: #94a3b8; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.3s; }
-.nav-bar button:active { color: white; transform: scale(0.9); }
-
-.main-scroll-area { height: calc(100vh - 120px); margin-top: 60px; overflow-y: auto; padding: 20px; }
-.tab-content { display: none; flex-direction: column; gap: 20px; }
-.tab-content.active { display: flex; }
-
-.player-tag { font-weight: bold; color: #94a3b8; margin-bottom: 5px; }
-
-.battle-arena { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.player-box { flex: 1; padding: 15px; border-radius: 15px; text-align: center; }
-.hp-wrapper { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; margin-bottom: 15px; overflow: hidden; }
-.hp-bar { height: 100%; background: #22c55e; width: 100%; transition: width 0.4s ease; }
-.dice-space img { width: 100%; max-width: 90px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); border-radius: 15px; }
-
-/* --- PREMIUM BUTTONS --- */
-.btn-group { display: flex; gap: 12px; }
-.btn-battle {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-.btn-battle:active { transform: scale(0.95); }
-
-.std-premium { background: linear-gradient(135deg, #f59e0b, #d97706); color: black; box-shadow: 0 0 20px rgba(217, 119, 6, 0.3); }
-.bsk-premium { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
-
-/* --- SHOP & VAULT --- */
-.aura-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.aura-btn { padding: 12px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.8rem; }
-.aura-btn.cyber { border-color: var(--cyber); color: var(--cyber); }
-.aura-btn.fire { border-color: var(--inferno); color: var(--inferno); }
-
-.upgrade-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
-.up-btn { background: var(--gold); color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; min-width: 60px; }
+/* SHOP & DAILY */
+.daily-reward-card { padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--gold); }
+.aura-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.aura-btn { padding: 10px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; cursor: pointer; }
+.up-btn { background: var(--gold); color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; }
 .up-btn.prestige { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
 
-/* --- WALLET --- */
-.wallet-bar { position: fixed; bottom: 0; width: 100%; height: 60px; display: flex; justify-content: space-around; align-items: center; border-bottom: none; }
-.stat { font-weight: bold; font-size: 1rem; }
+/* NAVIGATION & WALLET */
+.nav-bar { position: fixed; top: 0; width: 100%; height: 60px; display: flex; justify-content: space-around; align-items: center; z-index: 100; border-radius: 0 0 15px 15px; }
+.nav-bar button { background: none; border: none; color: #94a3b8; font-weight: bold; cursor: pointer; }
+.wallet-bar { position: fixed; bottom: 0; width: 100%; height: 60px; display: flex; justify-content: space-around; align-items: center; border-radius: 15px 15px 0 0; }
 
-/* --- THEMES --- */
+.main-scroll-area { height: calc(100vh - 120px); margin-top: 60px; overflow-y: auto; padding: 20px; }
+.tab-content { display: none; flex-direction: column; }
+.tab-content.active { display: flex; }
+
+/* HALL OF FAME */
+.leaderboard-list { padding: 10px; }
+.rank-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+/* THEMES */
 body.cyberpunk { background: radial-gradient(circle at center, #2e1065 0%, #020617 100%); }
 body.inferno { background: radial-gradient(circle at center, #450a0a 0%, #020617 100%); }
 
 .floating-text { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-weight: 900; font-size: 2rem; pointer-events: none; animation: floatUp 1s forwards; z-index: 1000; }
-@keyframes floatUp { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -200%); } }
+@keyframes floatUp { 100% { opacity: 0; transform: translate(-50%, -200%); } }
