@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dice Battle Elite</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,9 +14,9 @@
         <p class="subtitle">ELITE ARENA</p>
         
         <div class="login-card glass">
-            <input type="text" id="nickname-input" placeholder="Enter your warrior name..." class="glass-input">
+            <input type="text" id="nickname-input" placeholder="Enter warrior name..." class="glass-input">
             <button onclick="enterArena()" class="enter-btn">🚀 ENTER ARENA</button>
-            <p class="server-status">Global Server Online</p>
+            <div class="server-status"><span class="dot"></span> Global Server Online</div>
         </div>
         <p class="footer-credit">Developed by Kaushal Kotian</p>
     </div>
@@ -31,26 +31,24 @@
         <div class="main-scroll-area">
             
             <section id="tab-arena" class="tab-content active">
-                <p class="player-tag"><span id="display-username">Warrior</span> LVL <span id="lvl-num">1</span></p>
+                <p class="player-tag"><span id="display-username">Warrior</span> <span class="badge">LVL <span id="lvl-num">1</span></span></p>
                 
                 <div class="battle-arena">
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="./assets/red-1.png" id="dice1" alt="Dice 1"></div>
-                        <p>YOU</p>
+                        <div class="dice-space"><img src="./assets/red-1.png" id="dice1"></div>
+                        <p class="label">YOU</p>
                     </div>
                     <div class="vs-divider">VS</div>
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="./assets/green-1.png" id="dice2" alt="Dice 2"></div>
-                        <p>OPPONENT</p>
+                        <div class="dice-space"><img src="./assets/green-1.png" id="dice2"></div>
+                        <p class="label">CPU</p>
                     </div>
                 </div>
 
                 <div class="action-zone glass">
-                    <div class="bet-container">
-                        <input type="number" id="bet-input" value="10" class="glass-input small">
-                    </div>
+                    <input type="number" id="bet-input" value="10" class="glass-input bet-field">
                     <div class="btn-group">
                         <button onclick="startBattle('std')" class="btn-battle std-premium">🎲 Standard</button>
                         <button onclick="startBattle('bsk')" class="btn-battle bsk-premium">⚡ Berserk</button>
@@ -60,6 +58,12 @@
             </section>
 
             <section id="tab-vault" class="tab-content">
+                <div class="daily-reward-card glass">
+                    <h3>🎁 Daily Bonus</h3>
+                    <p>Claim free coins every 24h</p>
+                    <button class="enter-btn" id="claim-btn" onclick="claimDaily()">CLAIM REWARD</button>
+                </div>
+
                 <h3>✨ AURA SELECTOR</h3>
                 <div class="aura-grid">
                     <button class="aura-btn" onclick="setTheme('default')">🌑 Classic</button>
@@ -86,11 +90,9 @@
 
             <section id="tab-hall" class="tab-content">
                 <h3>🏆 HALL OF FAME</h3>
-                <div id="leaderboard" class="glass">
-                    <p>Coming Soon...</p>
-                </div>
+                <div id="leaderboard-ui" class="leaderboard-list glass">
+                    </div>
             </section>
-
         </div>
     </main>
 
