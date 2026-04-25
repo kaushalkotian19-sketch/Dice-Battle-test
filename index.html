@@ -16,11 +16,25 @@
     <button onclick="showTab('hall')">🏆 Hall</button>
 </div>
 
-<div id="home-screen" class="home">
-  <h1 class="title">🎲 DICE <span>BATTLE</span></h1>
-  <div class="login-box">
-    <input type="text" id="nickname-input" placeholder="Enter Nickname..." class="glass-input">
-    <button class="connect-btn" onclick="handleSimpleLogin()">🚀 Enter Arena</button>
+<div id="home-screen" class="home-container">
+  <div class="hero-section">
+    <div class="dice-icon">🎲</div>
+    <h1 class="main-title">DICE<span>BATTLE</span></h1>
+    <p class="subtitle">ELITE ARENA</p>
+  </div>
+
+  <div class="login-card glass">
+    <input type="text" id="nickname-input" placeholder="Enter your warrior name..." class="glass-input">
+    <button class="enter-btn" onclick="enterArena()">
+      <span>🚀</span> ENTER ARENA
+    </button>
+    <div class="server-status">
+      <span class="dot"></span> Global Server Online
+    </div>
+  </div>
+  
+  <div class="home-footer">
+    Developed by Kaushal Kotian
   </div>
 </div>
 
