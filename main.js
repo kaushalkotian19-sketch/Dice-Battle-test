@@ -11,7 +11,7 @@ const sounds = {
     roll: new Audio('dice_roll.mp3'),
     win: new Audio('win_ding.mp3'),
     lose: new Audio('lose_thud.mp3'),
-    heartbeat: new Audio('heartbeat.mp3') // RESTORED
+    heartbeat: new Audio('heartbeat.mp3')
 };
 sounds.heartbeat.loop = true;
 
@@ -46,7 +46,7 @@ function startBattle(type) {
             if (p1HP <= 0) { sounds.lose.play(); p1HP = upgrades.hp; p2HP = 100; }
         }
         
-        // HEARTBEAT LOGIC
+        // HEARTBEAT LOGIC: Triggers at 30% of permanent max HP
         if (p1HP < (upgrades.hp * 0.3)) { sounds.heartbeat.play(); } 
         else { sounds.heartbeat.pause(); }
 
@@ -79,4 +79,7 @@ function showTab(t) {
     document.getElementById(`tab-${t}`).style.display = 'flex';
 }
 
-function setTheme(t) { document.body.className = t; localStorage.setItem("gameTheme", t); }
+function setTheme(t) { 
+    document.body.className = t; 
+    localStorage.setItem("gameTheme", t); 
+}
