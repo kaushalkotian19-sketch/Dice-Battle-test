@@ -13,7 +13,7 @@
             <div class="home-container">
                 <h1 class="main-title">DICE BATTLE</h1>
                 <div class="login-card glass">
-                    <button class="enter-btn" onclick="showTab('arena')">ENTER ARENA</button>
+                    <button class="enter-btn" onclick="startGame()">ENTER ARENA</button>
                 </div>
             </div>
         </section>
@@ -21,10 +21,8 @@
         <section id="tab-arena" class="tab-content">
             <div class="main-scroll-area">
                 <div class="player-info">
-                    <p class="player-tag">
-                        <span id="prestige-star"></span>
-                        WARRIOR <span class="badge">LVL <span id="lvl-num">1</span></span>
-                    </p>
+                    <h2 class="player-tag">WARRIOR LVL <span id="lvl-num">1</span></h2>
+                    <div id="prestige-star"></div>
                 </div>
 
                 <div class="battle-arena">
@@ -68,8 +66,8 @@
                 <div class="settings-group glass">
                     <h3>🔊 SYSTEM VOLUME</h3>
                     <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume()">
-                    <button id="mute-btn" class="glass-btn" onclick="toggleMute()">🔊 Sound On</button>
-                    <button class="prestige-btn" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
+                    <button id="mute-btn" class="glass-btn" style="margin-top: 10px;" onclick="toggleMute()">🔊 Sound On</button>
+                    <button class="prestige-btn" style="margin-top: 10px;" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
                 </div>
             </div>
         </section>
