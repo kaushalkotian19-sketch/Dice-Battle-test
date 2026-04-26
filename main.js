@@ -1,4 +1,4 @@
-// --- ELITE GAME STATE ---
+// --- GAME STATE ---
 let coins = Number(localStorage.getItem("coins")) || 0;
 let tokens = Number(localStorage.getItem("tokens")) || 0;
 let level = Number(localStorage.getItem("level")) || 1;
@@ -14,14 +14,18 @@ let p1HP = upgrades.hp;
 let p2HP = 100 + (level * 5);
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
-// --- AUDIO (IN ROOT) ---
+// --- AUDIO SYSTEM ---
+// These map exactly to the files in your repo
 const sounds = {
     roll: new Audio('dice_roll.mp3'),
     win: new Audio('win_ding.mp3'),
     lose: new Audio('lose_thud.mp3'),
     pulse: new Audio('pulse.mp3'),
-    heartbeat: new Audio('heartbeat.mp3')
+    heartbeat: new Audio('heartbeat.mp3'),
+    bgm: new Audio('ambient_synth.mp3')
 };
+sounds.bgm.loop = true;
+sounds.bgm.volume = 0.4;
 
 // --- BESTIARY ---
 const enemies = [
@@ -30,10 +34,20 @@ const enemies = [
     { name: "Skeleton", minLvl: 15, color: "#cbd5e1" },
     { name: "Orc Warrior", minLvl: 30, color: "#fb923c" },
     { name: "Void Wraith", minLvl: 45, color: "#a855f7" },
-    { name: "DRAGON KING", minLvl: 60, color: "#ef4444" }
+    { name: "DRAGON", minLvl: 60, color: "#ef4444" }
 ];
 
-// --- NAVIGATION ---
+// --- CORE FUNCTIONS ---
+
+// Triggered ONLY by user clicking "ENTER ARENA" to bypass browser audio blocks
+function startGame() {
+    showTab('arena');
+    if (!isMuted) {
+        sounds.pulse.play().catch(e => console.log("Audio play blocked:", e));
+        sounds.bgm.play().catch(e => console.log("BGM play blocked:", e));
+    }
+}
+
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById(`tab-${tabId}`).classList.add('active');
@@ -50,12 +64,7 @@ function showTab(tabId) {
     }
 }
 
-// --- BATTLE ENGINE ---
 function rollDice() {
-    for (let key in sounds) { // Unlock audio for mobile
-        sounds[key].play().then(() => { sounds[key].pause(); sounds[key].currentTime = 0; }).catch(() => {});
-    }
-    
     const diceElements = document.querySelectorAll('.dice-img');
     diceElements.forEach(d => d.classList.add('shake'));
     setTimeout(() => diceElements.forEach(d => d.classList.remove('shake')), 400);
@@ -63,44 +72,47 @@ function rollDice() {
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
 
-    // PATH LOGIC FOR YOUR MANUAL NEON FILES
+    // Skin logic mapping to your assets folder
     let prefix = (activeSkin === 'neon') ? 'neon-' : '';
-    
     document.getElementById("p1-img").src = `assets/${prefix}red-${d1}.png`;
     document.getElementById("p2-img").src = `assets/${prefix}green-${d2}.png`;
     
-    sounds.roll.currentTime = 0;
-    sounds.roll.play();
-
-    let damageToCPU = d1;
-    let isCrit = (d1 === 6 || (Math.random() * 100 < upgrades.luck));
-
-    if (isCrit) {
-        damageToCPU *= 2;
-        showFloatingText("CRITICAL!", "#fbbf24");
-        document.querySelector('.battle-arena').classList.add('crit-shake');
-        setTimeout(() => document.querySelector('.battle-arena').classList.remove('crit-shake'), 400);
-        if ("vibrate" in navigator) navigator.vibrate([50, 30, 50]);
+    if(!isMuted) {
+        sounds.roll.currentTime = 0;
+        sounds.roll.play().catch(() => {});
     }
 
     if (d1 > d2) {
-        let totalDmg = damageToCPU * 5;
-        p2HP -= totalDmg;
+        p2HP -= (d1 * 5);
         coins += (10 * upgrades.mult);
-        showFloatingText(`-${totalDmg} HP`, "#22c55e");
     } else if (d2 > d1) {
         p1HP -= (d2 * 5);
-        document.body.classList.add('damage-flash');
-        setTimeout(() => document.body.classList.remove('damage-flash'), 300);
-        showFloatingText(`-${d2 * 5} HP`, "#ef4444");
-        if ("vibrate" in navigator) navigator.vibrate(100);
+        if(p1HP < 30 && p1HP > 0 && !isMuted) {
+            sounds.heartbeat.currentTime = 0;
+            sounds.heartbeat.play().catch(() => {});
+        }
     }
 
     checkBattleStatus();
     updateUI();
 }
 
-// --- SKINS & UPGRADES ---
+function checkBattleStatus() {
+    if (p2HP <= 0) {
+        if(!isMuted) sounds.win.play().catch(() => {});
+        tokens += 5;
+        totalWins++;
+        level++;
+        if (level > highestLevel) highestLevel = level;
+        p2HP = 100 + (level * 5);
+        p1HP = upgrades.hp; // Reset HP on win
+    } else if (p1HP <= 0) {
+        if(!isMuted) sounds.lose.play().catch(() => {});
+        p1HP = upgrades.hp;
+        p2HP = 100 + (level * 5);
+    }
+}
+
 function buySkin(skinName, cost) {
     if (ownedSkins.includes(skinName)) {
         activeSkin = skinName;
@@ -108,9 +120,6 @@ function buySkin(skinName, cost) {
         coins -= cost;
         ownedSkins.push(skinName);
         activeSkin = skinName;
-        triggerConfetti();
-    } else {
-        alert("Not enough coins!");
     }
     updateUI();
 }
@@ -121,52 +130,43 @@ function buyPermanent(type) {
         tokens -= cost;
         if (type === 'hp') { upgrades.hp += 20; p1HP = upgrades.hp; }
         else { upgrades.luck += 5; }
-        showFloatingText("UPGRADED!", "#fbbf24");
-    } else {
-        alert("Not enough tokens!");
     }
     updateUI();
 }
 
-function checkBattleStatus() {
-    if (p2HP <= 0) {
-        sounds.win.play();
-        triggerConfetti();
-        tokens += 5;
-        totalWins++;
-        level++;
-        if (level > highestLevel) highestLevel = level;
+function handlePrestige() {
+    if (level >= 50) {
+        prestigeCount++;
+        level = 1;
+        coins = 0;
         p2HP = 100 + (level * 5);
         p1HP = upgrades.hp;
-    } else if (p1HP <= 0) {
-        sounds.lose.play();
-        p1HP = upgrades.hp;
-        p2HP = 100 + (level * 5);
-        alert("DEFEAT! Resting for a moment...");
+        updateUI();
+        alert("PRESTIGE ACTIVATED! You have restarted at Level 1 with a new Prestige Star.");
+    } else {
+        alert("You must reach Level 50 to Prestige!");
     }
 }
 
-// --- UI & CORE SYSTEMS ---
 function updateUI() {
     document.getElementById("coins-game").textContent = Math.floor(coins).toLocaleString();
     document.getElementById("tokens-game").textContent = tokens;
     document.getElementById("lvl-num").textContent = level;
     
-    // HP Bars
-    document.getElementById("p1-hp").style.width = (p1HP / upgrades.hp * 100) + "%";
-    document.getElementById("p2-hp").style.width = (p2HP / (100 + (level * 5)) * 100) + "%";
+    // Ensure HP bars don't go below 0 visually
+    let p1Percent = Math.max(0, (p1HP / upgrades.hp * 100));
+    let p2Percent = Math.max(0, (p2HP / (100 + (level * 5)) * 100));
     
-    // Enemy Logic
-    let currentEnemy = [...enemies].reverse().find(e => level >= e.minLvl);
+    document.getElementById("p1-hp").style.width = p1Percent + "%";
+    document.getElementById("p2-hp").style.width = p2Percent + "%";
+    
+    let currentEnemy = [...enemies].reverse().find(e => level >= e.minLvl) || enemies[0];
     const eName = document.getElementById("enemy-name");
-    const eBar = document.getElementById("p2-hp");
     if(eName) {
         eName.textContent = currentEnemy.name;
         eName.style.color = currentEnemy.color;
-        eBar.style.backgroundColor = currentEnemy.color;
     }
 
-    // Skin Buttons
     document.querySelectorAll('.skin-btn').forEach(btn => {
         const sid = btn.id.replace('skin-', '');
         if (ownedSkins.includes(sid)) {
@@ -178,8 +178,49 @@ function updateUI() {
     document.getElementById("best-run").textContent = highestLevel;
     document.getElementById("total-wins").textContent = totalWins;
     document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount);
-
+    document.getElementById("mute-btn").textContent = isMuted ? "🔇 Muted" : "🔊 Sound On";
+    
     saveData();
 }
 
-// (Keep your existing saveData, adjustVolume, toggleMute, triggerConfetti functions here)
+function toggleMute() {
+    isMuted = !isMuted;
+    localStorage.setItem("gameMuted", isMuted);
+    if(isMuted) {
+        sounds.bgm.pause();
+    } else {
+        // Only try to play BGM if we are not on the home screen
+        if (document.getElementById('tab-home').classList.contains('active') === false) {
+             sounds.bgm.play().catch(() => {});
+        }
+    }
+    updateUI();
+}
+
+function adjustVolume() {
+    const vol = document.getElementById("volume-slider").value;
+    for (let s in sounds) {
+        if(s === 'bgm') {
+            sounds[s].volume = vol * 0.4; // keep bgm quieter
+        } else {
+            sounds[s].volume = vol;
+        }
+    }
+}
+
+function saveData() {
+    localStorage.setItem("coins", coins);
+    localStorage.setItem("tokens", tokens);
+    localStorage.setItem("level", level);
+    localStorage.setItem("totalWins", totalWins);
+    localStorage.setItem("highestLevel", highestLevel);
+    localStorage.setItem("prestigeCount", prestigeCount);
+    localStorage.setItem("upgrades", JSON.stringify(upgrades));
+    localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins));
+    localStorage.setItem("activeSkin", activeSkin);
+}
+
+// Initial UI setup on load
+document.getElementById("volume-slider").value = 0.5;
+adjustVolume();
+updateUI();
