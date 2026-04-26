@@ -13,7 +13,7 @@
             <div class="home-container">
                 <h1 class="main-title">DICE BATTLE</h1>
                 <div class="login-card glass">
-                    <button class="enter-btn" onclick="showTab('arena'); playPulse()">ENTER ARENA</button>
+                    <button class="enter-btn" onclick="showTab('arena')">ENTER ARENA</button>
                 </div>
             </div>
         </section>
@@ -23,8 +23,7 @@
                 <div class="player-info">
                     <p class="player-tag">
                         <span id="prestige-star"></span>
-                        <span id="display-username">WARRIOR</span> 
-                        <span class="badge">LVL <span id="lvl-num">1</span></span>
+                        WARRIOR <span class="badge">LVL <span id="lvl-num">1</span></span>
                     </p>
                 </div>
 
@@ -38,7 +37,7 @@
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
                         <div class="dice-space"><img src="assets/green-1.png" id="p2-img" class="dice-img"></div>
-                        <p id="enemy-name" class="label">SLIME</p>
+                        <p id="enemy-name" class="label">CPU</p>
                     </div>
                 </div>
 
@@ -52,8 +51,10 @@
             <div class="main-scroll-area">
                 <div class="shop-section glass">
                     <h3>✨ PERMANENT UPGRADES</h3>
-                    <button class="up-btn" onclick="buyPermanent('hp')">+20 MAX HP (10 Tokens)</button>
-                    <button class="up-btn" onclick="buyPermanent('luck')">+5% LUCK (25 Tokens)</button>
+                    <div class="upgrade-grid">
+                        <button class="up-btn" onclick="buyPermanent('hp')">+20 HP (10 💎)</button>
+                        <button class="up-btn" onclick="buyPermanent('luck')">+5% LUCK (25 💎)</button>
+                    </div>
                 </div>
 
                 <div class="shop-section glass">
@@ -67,23 +68,19 @@
                 <div class="settings-group glass">
                     <h3>🔊 SYSTEM VOLUME</h3>
                     <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume()">
-                    <div class="mute-control">
-                        <button id="mute-btn" class="glass-btn" onclick="toggleMute()">
-                            <span id="mute-icon">🔊</span> <span id="mute-text">Sound On</span>
-                        </button>
-                    </div>
+                    <button id="mute-btn" class="glass-btn" onclick="toggleMute()">🔊 Sound On</button>
+                    <button class="prestige-btn" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
                 </div>
-
-                <button class="prestige-btn" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
             </div>
         </section>
 
         <section id="tab-hall" class="tab-content">
             <div class="main-scroll-area">
-                <h3 style="text-align: center; margin-top: 20px;">🏆 HALL OF FAME</h3>
-                <div class="stats-grid glass">
-                    <div class="stat-card"><p class="stat-label">BEST RUN</p><p id="best-run" class="stat-value">1</p></div>
-                    <div class="stat-card"><p class="stat-label">WINS</p><p id="total-wins" class="stat-value">0</p></div>
+                <h2 class="section-title">🏆 HALL OF FAME</h2>
+                <div class="stats-container glass">
+                    <div class="stat-row"><span>BEST RUN</span> <span id="best-run" class="gold-text">1</span></div>
+                    <hr>
+                    <div class="stat-row"><span>TOTAL WINS</span> <span id="total-wins" class="gold-text">0</span></div>
                 </div>
             </div>
         </section>
