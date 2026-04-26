@@ -6,18 +6,12 @@ let totalWins = Number(localStorage.getItem("totalWins")) || 0;
 let highestLevel = Number(localStorage.getItem("highestLevel")) || 1;
 let prestigeCount = Number(localStorage.getItem("prestigeCount")) || 0;
 
-// Persistent Upgrades
-let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { 
-    hp: 100, 
-    luck: 0, 
-    mult: 1 
-};
-
+let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100, luck: 0, mult: 1 };
 let p1HP = upgrades.hp;
 let p2HP = 100 + (level * 5);
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
-// --- AUDIO CONFIGURATION (FILES IN ROOT) ---
+// --- AUDIO (IN ROOT FOLDER) ---
 const sounds = {
     roll: new Audio('dice_roll.mp3'),
     win: new Audio('win_ding.mp3'),
@@ -26,15 +20,25 @@ const sounds = {
     heartbeat: new Audio('heartbeat.mp3')
 };
 
-// --- CORE ENGINE ---
-
+// --- NAVIGATION ---
 function showTab(tabId) {
+    // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    // Show selected tab
     document.getElementById(`tab-${tabId}`).classList.add('active');
+    
+    // Manage Nav and Wallet visibility
+    if(tabId === 'home') {
+        document.getElementById('main-nav').style.display = 'none';
+        document.getElementById('main-wallet').style.display = 'none';
+    } else {
+        document.getElementById('main-nav').style.display = 'flex';
+        document.getElementById('main-wallet').style.display = 'flex';
+    }
 }
 
+// --- BATTLE LOGIC ---
 function unlockAudio() {
-    // Required for mobile browsers to allow sound
     for (let key in sounds) {
         sounds[key].play().then(() => {
             sounds[key].pause();
@@ -46,22 +50,21 @@ function unlockAudio() {
 function rollDice() {
     unlockAudio();
     
-    // 1. Visual Polish: Shake Animation
+    // Animation
     const diceElements = document.querySelectorAll('.dice-img');
     diceElements.forEach(d => d.classList.add('shake'));
     setTimeout(() => diceElements.forEach(d => d.classList.remove('shake')), 400);
 
-    // 2. Generate Numbers
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
 
-    // 3. Update Images (FILES IN ASSETS FOLDER)
+    // IMAGE PATHS (Must be in assets folder)
     document.getElementById("p1-img").src = `assets/red-dice-${d1}.png`;
     document.getElementById("p2-img").src = `assets/green-dice-${d2}.png`;
     
     sounds.roll.play();
 
-    // 4. Critical & Luck Logic
+    // Damage Logic
     let damageToCPU = d1;
     let isCrit = (d1 === 6 || (Math.random() * 100 < upgrades.luck));
 
@@ -71,7 +74,6 @@ function rollDice() {
         if ("vibrate" in navigator) navigator.vibrate([50, 30, 50]);
     }
 
-    // 5. Battle Calculation
     if (d1 > d2) {
         let totalDmg = damageToCPU * 5;
         p2HP -= totalDmg;
@@ -90,7 +92,6 @@ function rollDice() {
 }
 
 // --- SYSTEMS ---
-
 function checkBattleStatus() {
     if (p2HP <= 0) {
         sounds.win.play();
@@ -122,7 +123,7 @@ function buyPermanent(type) {
         upgrades.luck += 5;
         showFloatingText("+5% LUCK", "#fbbf24");
     } else {
-        alert("Not enough Tokens!");
+        alert("Not enough Tokens! Win battles to earn more.");
     }
     updateUI();
 }
@@ -133,12 +134,40 @@ function handlePrestige() {
     level = 1;
     upgrades.mult += 0.5;
     coins = 0;
+    triggerConfetti();
+    if ("vibrate" in navigator) navigator.vibrate([100, 50, 100, 50, 100]);
     saveData();
     updateUI();
     alert("PRESTIGE COMPLETE! Your earnings are now boosted.");
 }
 
-// --- UI & AUDIO SETTINGS ---
+// --- VISUALS & AUDIO SETTINGS ---
+function triggerConfetti() {
+    const colors = ['#fbbf24', '#ef4444', '#22c55e', '#a855f7', '#3b82f6'];
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = Math.random() * 8 + 5 + 'px';
+        confetti.style.height = confetti.style.width;
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+function showFloatingText(txt, clr) {
+    const div = document.createElement("div");
+    div.className = "floating-text";
+    div.style.color = clr;
+    div.style.left = "50%";
+    div.style.top = "40%";
+    div.style.transform = "translate(-50%, -50%)";
+    div.textContent = txt;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 800);
+}
 
 function adjustVolume() {
     const vol = document.getElementById("volume-slider").value;
@@ -151,42 +180,44 @@ function toggleMute() {
     isMuted = !isMuted;
     localStorage.setItem("gameMuted", isMuted);
     applyMuteState();
+    if (!isMuted) playPulse();
 }
 
 function applyMuteState() {
     for (let key in sounds) { sounds[key].muted = isMuted; }
     const btn = document.getElementById("mute-btn");
-    btn.innerHTML = isMuted ? "🔇 Muted" : "🔊 Sound On";
-    if (isMuted) btn.classList.add("is-muted");
-    else btn.classList.remove("is-muted");
+    const icon = document.getElementById("mute-icon");
+    const text = document.getElementById("mute-text");
+    
+    if (isMuted) {
+        icon.innerText = "🔇";
+        text.innerText = "Muted";
+        btn.classList.add("is-muted");
+    } else {
+        icon.innerText = "🔊";
+        text.innerText = "Sound On";
+        btn.classList.remove("is-muted");
+    }
 }
 
-function showFloatingText(txt, clr) {
-    const div = document.createElement("div");
-    div.className = "floating-text";
-    div.style.color = clr;
-    div.style.left = "50%";
-    div.style.top = "40%";
-    div.textContent = txt;
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 800);
+function playPulse() {
+    sounds.pulse.currentTime = 0;
+    sounds.pulse.play().catch(() => {});
 }
 
+// --- DATA MANAGEMENT ---
 function updateUI() {
-    document.getElementById("coins-game").textContent = Math.floor(coins);
-    document.getElementById("tokens-game").textContent = tokens;
+    document.getElementById("coins-game").textContent = Math.floor(coins).toLocaleString();
+    document.getElementById("tokens-game").textContent = tokens.toLocaleString();
     document.getElementById("lvl-num").textContent = level;
     
-    // HP Bars
     document.getElementById("p1-hp").style.width = (p1HP / upgrades.hp * 100) + "%";
     document.getElementById("p2-hp").style.width = (p2HP / (100 + (level * 5)) * 100) + "%";
     
-    // Hall of Fame & Stars
     document.getElementById("best-run").textContent = highestLevel;
     document.getElementById("total-wins").textContent = totalWins;
-    document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount);
+    document.getElementById("prestige-star").textContent = prestigeCount > 0 ? "⭐".repeat(prestigeCount) : "";
 
-    // Heartbeat logic
     if (p1HP < (upgrades.hp * 0.3) && p1HP > 0) {
         sounds.heartbeat.play().catch(() => {});
     } else {
@@ -206,13 +237,9 @@ function saveData() {
     localStorage.setItem("prestigeCount", prestigeCount);
 }
 
-function playPulse() {
-    sounds.pulse.currentTime = 0;
-    sounds.pulse.play().catch(() => {});
-}
-
-// Initial Boot
+// Boot sequence
 window.onload = () => {
+    showTab('home'); // Ensure only home shows on load
     const savedVol = localStorage.getItem("gameVolume") || 0.5;
     document.getElementById("volume-slider").value = savedVol;
     adjustVolume();
