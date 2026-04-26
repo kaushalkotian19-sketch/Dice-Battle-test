@@ -22,7 +22,7 @@
             <div class="main-scroll-area">
                 <div class="player-info">
                     <p class="player-tag">
-                        <span id="prestige-star" style="color: #fbbf24; margin-right: 5px;"></span>
+                        <span id="prestige-star"></span>
                         <span id="display-username">WARRIOR</span> 
                         <span class="badge">LVL <span id="lvl-num">1</span></span>
                     </p>
@@ -31,14 +31,14 @@
                 <div class="battle-arena">
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="assets/red-dice-1.png" id="p1-img" class="dice-img"></div>
+                        <div class="dice-space"><img src="assets/red-1.png" id="p1-img" class="dice-img"></div>
                         <p class="label">YOU</p>
                     </div>
                     <div class="vs-divider">VS</div>
                     <div class="player-box glass">
                         <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="assets/green-dice-1.png" id="p2-img" class="dice-img"></div>
-                        <p class="label">CPU</p>
+                        <div class="dice-space"><img src="assets/green-1.png" id="p2-img" class="dice-img"></div>
+                        <p id="enemy-name" class="label">SLIME</p>
                     </div>
                 </div>
 
@@ -52,17 +52,21 @@
             <div class="main-scroll-area">
                 <div class="shop-section glass">
                     <h3>✨ PERMANENT UPGRADES</h3>
-                    <button class="up-btn" onclick="buyPermanent('hp'); playPulse()">+20 MAX HP (10 Tokens)</button>
-                    <button class="up-btn" onclick="buyPermanent('luck'); playPulse()">+5% LUCK (25 Tokens)</button>
+                    <button class="up-btn" onclick="buyPermanent('hp')">+20 MAX HP (10 Tokens)</button>
+                    <button class="up-btn" onclick="buyPermanent('luck')">+5% LUCK (25 Tokens)</button>
+                </div>
+
+                <div class="shop-section glass">
+                    <h3>🎨 DICE SKINS</h3>
+                    <div class="skin-grid">
+                        <button id="skin-classic" class="skin-btn" onclick="buySkin('classic', 0)">CLASSIC</button>
+                        <button id="skin-neon" class="skin-btn" onclick="buySkin('neon', 5000)">NEON (5k 💰)</button>
+                    </div>
                 </div>
 
                 <div class="settings-group glass">
                     <h3>🔊 SYSTEM VOLUME</h3>
-                    <div class="volume-container">
-                        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume()">
-                    </div>
-                    <p id="vol-label">Volume: 50%</p>
-                    
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume()">
                     <div class="mute-control">
                         <button id="mute-btn" class="glass-btn" onclick="toggleMute()">
                             <span id="mute-icon">🔊</span> <span id="mute-text">Sound On</span>
@@ -70,7 +74,7 @@
                     </div>
                 </div>
 
-                <button class="prestige-btn" onclick="handlePrestige()">PRESTIGE (REQ. LVL 50)</button>
+                <button class="prestige-btn" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
             </div>
         </section>
 
@@ -78,29 +82,22 @@
             <div class="main-scroll-area">
                 <h3 style="text-align: center; margin-top: 20px;">🏆 HALL OF FAME</h3>
                 <div class="stats-grid glass">
-                    <div class="stat-card">
-                        <p class="stat-label">HIGHEST LEVEL</p>
-                        <p id="best-run" class="stat-value">1</p>
-                    </div>
-                    <div class="stat-card">
-                        <p class="stat-label">TOTAL WINS</p>
-                        <p id="total-wins" class="stat-value">0</p>
-                    </div>
+                    <div class="stat-card"><p class="stat-label">BEST RUN</p><p id="best-run" class="stat-value">1</p></div>
+                    <div class="stat-card"><p class="stat-label">WINS</p><p id="total-wins" class="stat-value">0</p></div>
                 </div>
             </div>
         </section>
 
-        <nav class="nav-bar glass" id="main-nav">
-            <button onclick="showTab('arena'); playPulse()">⚔️ Arena</button>
-            <button onclick="showTab('vault'); playPulse()">✨ Vault</button>
-            <button onclick="showTab('hall'); playPulse()">🏆 Hall</button>
+        <nav class="nav-bar glass" id="main-nav" style="display:none;">
+            <button onclick="showTab('arena')">⚔️ Arena</button>
+            <button onclick="showTab('vault')">✨ Vault</button>
+            <button onclick="showTab('hall')">🏆 Hall</button>
         </nav>
 
-        <div class="wallet-bar" id="main-wallet">
+        <div class="wallet-bar" id="main-wallet" style="display:none;">
             <span>💰 <span id="coins-game">0</span></span>
             <span>💎 <span id="tokens-game">0</span></span>
         </div>
-
     </div>
     <script src="main.js"></script>
 </body>
