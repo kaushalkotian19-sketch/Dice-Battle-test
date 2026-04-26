@@ -1,3 +1,12 @@
+// --- PWA SERVICE WORKER REGISTRATION ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker Registered successfully!'))
+            .catch(err => console.log('Service Worker Registration Failed:', err));
+    });
+}
+
 // --- GAME STATE ---
 let coins = Number(localStorage.getItem("coins")) || 0;
 let tokens = Number(localStorage.getItem("tokens")) || 0;
@@ -15,7 +24,6 @@ let p2HP = 100 + (level * 5);
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
 // --- AUDIO SYSTEM ---
-// These map exactly to the files in your repo
 const sounds = {
     roll: new Audio('dice_roll.mp3'),
     win: new Audio('win_ding.mp3'),
@@ -37,9 +45,28 @@ const enemies = [
     { name: "DRAGON", minLvl: 60, color: "#ef4444" }
 ];
 
-// --- CORE FUNCTIONS ---
+// --- COMBAT JUICE ---
+function createDamagePop(damage, targetId) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
 
-// Triggered ONLY by user clicking "ENTER ARENA" to bypass browser audio blocks
+    const parent = target.parentElement;
+    parent.style.position = 'relative';
+
+    const pop = document.createElement('div');
+    pop.className = 'damage-pop';
+    pop.textContent = -${damage};
+    
+    const offsetX = (Math.random() - 0.5) * 40;
+    pop.style.left = calc(50% - 10px + ${offsetX}px);
+    pop.style.top = 20px;
+
+    parent.appendChild(pop);
+
+    setTimeout(() => pop.remove(), 800);
+}
+
+// --- CORE FUNCTIONS ---
 function startGame() {
     showTab('arena');
     if (!isMuted) {
@@ -50,7 +77,7 @@ function startGame() {
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById(`tab-${tabId}`).classList.add('active');
+    document.getElementById(tab-${tabId}).classList.add('active');
     
     const nav = document.getElementById('main-nav');
     const wallet = document.getElementById('main-wallet');
@@ -72,21 +99,25 @@ function rollDice() {
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
 
-    // Skin logic mapping to your assets folder
     let prefix = (activeSkin === 'neon') ? 'neon-' : '';
-    document.getElementById("p1-img").src = `assets/${prefix}red-${d1}.png`;
-    document.getElementById("p2-img").src = `assets/${prefix}green-${d2}.png`;
+    // Making sure the player uses the correct skin and enemy uses green
+    document.getElementById("p1-img").src = assets/${prefix}green-${d1}.png; 
+    document.getElementById("p2-img").src = assets/green-${d2}.png;
     
     if(!isMuted) {
         sounds.roll.currentTime = 0;
         sounds.roll.play().catch(() => {});
     }
-
     if (d1 > d2) {
-        p2HP -= (d1 * 5);
+        let dmg = d1 * 5;
+        p2HP -= dmg;
         coins += (10 * upgrades.mult);
+        createDamagePop(dmg, 'p2-img'); 
     } else if (d2 > d1) {
-        p1HP -= (d2 * 5);
+        let dmg = d2 * 5;
+        p1HP -= dmg;
+        createDamagePop(dmg, 'p1-img'); 
+        
         if(p1HP < 30 && p1HP > 0 && !isMuted) {
             sounds.heartbeat.currentTime = 0;
             sounds.heartbeat.play().catch(() => {});
@@ -105,7 +136,7 @@ function checkBattleStatus() {
         level++;
         if (level > highestLevel) highestLevel = level;
         p2HP = 100 + (level * 5);
-        p1HP = upgrades.hp; // Reset HP on win
+        p1HP = upgrades.hp; 
     } else if (p1HP <= 0) {
         if(!isMuted) sounds.lose.play().catch(() => {});
         p1HP = upgrades.hp;
@@ -153,7 +184,6 @@ function updateUI() {
     document.getElementById("tokens-game").textContent = tokens;
     document.getElementById("lvl-num").textContent = level;
     
-    // Ensure HP bars don't go below 0 visually
     let p1Percent = Math.max(0, (p1HP / upgrades.hp * 100));
     let p2Percent = Math.max(0, (p2HP / (100 + (level * 5)) * 100));
     
@@ -189,7 +219,6 @@ function toggleMute() {
     if(isMuted) {
         sounds.bgm.pause();
     } else {
-        // Only try to play BGM if we are not on the home screen
         if (document.getElementById('tab-home').classList.contains('active') === false) {
              sounds.bgm.play().catch(() => {});
         }
@@ -201,7 +230,7 @@ function adjustVolume() {
     const vol = document.getElementById("volume-slider").value;
     for (let s in sounds) {
         if(s === 'bgm') {
-            sounds[s].volume = vol * 0.4; // keep bgm quieter
+            sounds[s].volume = vol * 0.4; 
         } else {
             sounds[s].volume = vol;
         }
@@ -220,7 +249,6 @@ function saveData() {
     localStorage.setItem("activeSkin", activeSkin);
 }
 
-// Initial UI setup on load
 document.getElementById("volume-slider").value = 0.5;
 adjustVolume();
 updateUI();
