@@ -1,70 +1,110 @@
 :root {
     --gold: #fbbf24;
-    --glass: rgba(255, 255, 255, 0.08);
-    --cyber: #a855f7;
+    --glass: rgba(255, 255, 255, 0.05);
     --inferno: #ef4444;
 }
 
-* { box-sizing: border-box; }
-
 body {
-    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
     background: #020617;
     color: white;
-    margin: 0;
-    height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
     overflow: hidden;
+    touch-action: manipulation;
 }
 
-/* --- HOME SCREEN (Elite Restored) --- */
+/* Elite Background */
 .home-container {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
-    text-align: center;
 }
 
-.dice-icon { font-size: 5rem; margin-bottom: 10px; }
-.main-title { font-size: 2.5rem; letter-spacing: 5px; font-weight: 900; margin: 0; }
-.main-title span { color: var(--gold); }
+.glass {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+}
 
-.login-card { width: 85%; max-width: 350px; padding: 30px; border-radius: 20px; }
+/* Arena & Dice */
+.battle-arena {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    margin-top: 20px;
+}
 
-.glass-input {
+.dice-img {
+    width: 80px;
+    height: 80px;
+    transition: transform 0.1s;
+}
+
+.hp-wrapper {
     width: 100%;
-    padding: 15px;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    color: white;
-    margin-bottom: 15px;
+    height: 8px;
+    background: #334155;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
 }
 
-.enter-btn {
+.hp-bar {
+    height: 100%;
+    background: var(--inferno);
     width: 100%;
-    padding: 16px;
-    background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
-    border: none;
-    border-radius: 12px;
-    color: #000;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+    transition: width 0.3s ease;
 }
 
-/* --- GAME UI --- */
-.nav-bar { position: fixed; top: 10px; left: 5%; width: 90%; display: flex; justify-content: space-around; padding: 10px; z-index: 100; }
-.nav-btn { background: none; border: none; color: #94a3b8; font-weight: bold; }
-.nav-btn.active { color: white; border-bottom: 2px solid var(--gold); }
+/* Animations */
+.shake { animation: dice-shake 0.4s ease-in-out; }
+@keyframes dice-shake {
+    0% { transform: rotate(0); }
+    25% { transform: rotate(15deg) scale(1.1); }
+    50% { transform: rotate(-15deg) scale(1.1); }
+    100% { transform: rotate(0); }
+}
 
-.tab-content { display: none; padding: 80px 20px; flex-direction: column; }
-.tab-content.active { display: flex; }
+.damage-flash { animation: flash-red 0.3s; }
+@keyframes flash-red {
+    0% { background: #020617; }
+    50% { background: #450a0a; }
+    100% { background: #020617; }
+}
 
-.dice-img { width: 100px; height: 100px; border-radius: 15px; }
-.hp-wrapper { height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
-.hp-bar { height: 100%; background: #ef4444; transition: width 0.3s; }
+/* UI Elements */
+.nav-bar {
+    position: fixed;
+    bottom: 60px;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-around;
+}
 
-.wallet-bar { position: fixed; bottom: 0; width: 100%; height: 60px; display: flex; justify-content: space-around; align-items: center; background: var(--glass); }
+.wallet-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background: #0f172a;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    font-weight: bold;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.floating-text {
+    position: absolute;
+    font-weight: 900;
+    animation: float-up 0.8s forwards;
+}
+
+@keyframes float-up {
+    to { transform: translateY(-50px); opacity: 0; }
+}
