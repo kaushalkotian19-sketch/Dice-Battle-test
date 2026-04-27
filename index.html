@@ -22,6 +22,10 @@
                 <div class="login-card glass">
                     <button class="enter-btn" onclick="startGame()">ENTER ARENA</button>
                 </div>
+                
+                <div class="developer-credit">
+                    DEVELOPED BY <span class="dev-name">KAUSHAL KOTIAN</span>
+                </div>
             </div>
         </section>
 
@@ -96,6 +100,10 @@
                     <hr>
                     <div class="stat-row"><span>TOTAL WINS</span> <span id="total-wins" class="gold-text">0</span></div>
                 </div>
+
+                <h3 style="margin-top: 25px; text-align: center; letter-spacing: 1px;">🎖️ BADGES</h3>
+                <div id="achievements-container" class="achievements-grid">
+                    </div>
             </div>
         </section>
 
@@ -109,6 +117,18 @@
             <span>💰 <span id="coins-game">0</span></span>
             <span>💎 <span id="tokens-game">0</span></span>
         </div>
+
+        <div id="daily-reward-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content glass">
+                <h2>📅 DAILY REWARD</h2>
+                <p style="font-weight: bold; color: rgba(255,255,255,0.7);">Day <span id="streak-day">1</span></p>
+                <div class="reward-box">
+                    <span id="reward-amount">+100 💰</span>
+                </div>
+                <button class="enter-btn" onclick="claimDailyReward()" style="width: 100%; margin-top: 10px;">CLAIM</button>
+            </div>
+        </div>
+
     </div>
     <script src="main.js"></script>
 </body>
