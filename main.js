@@ -19,8 +19,9 @@ let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100, luck: 
 let ownedSkins = JSON.parse(localStorage.getItem("ownedSkins")) || ['classic'];
 let activeSkin = localStorage.getItem("activeSkin") || 'classic';
 
-let p1HP = upgrades.hp;
-let p2HP = 100 + (level * 5);
+let cooldowns = JSON.parse(localStorage.getItem("cooldowns")) || { heal: 0, double: 0 };
+let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false };
+
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
 // --- AUDIO SYSTEM ---
@@ -45,8 +46,17 @@ const enemies = [
     { name: "DRAGON", minLvl: 60, color: "#ef4444" }
 ];
 
+// --- CORE HELPERS ---
+function getEnemyMaxHP(lvl) {
+    let baseHP = 100 + (lvl * 5);
+    return (lvl % 10 === 0) ? baseHP * 3 : baseHP; 
+}
+
+let p1HP = upgrades.hp;
+let p2HP = getEnemyMaxHP(level);
+
 // --- COMBAT JUICE ---
-function createDamagePop(damage, targetId) {
+function createDamagePop(value, targetId, color = '#ef4444', isCrit = false) {
     const target = document.getElementById(targetId);
     if (!target) return;
 
@@ -55,15 +65,30 @@ function createDamagePop(damage, targetId) {
 
     const pop = document.createElement('div');
     pop.className = 'damage-pop';
-    pop.textContent = `-${damage}`;
+    
+    if (isCrit) pop.classList.add('crit-text');
+    
+    pop.textContent = (typeof value === 'number') ? `-${value}` : value;
+    pop.style.color = color;
     
     const offsetX = (Math.random() - 0.5) * 40;
     pop.style.left = `calc(50% - 10px + ${offsetX}px)`;
     pop.style.top = `20px`;
 
     parent.appendChild(pop);
-
     setTimeout(() => pop.remove(), 800);
+}
+
+function triggerBossFlash() {
+    const flash = document.createElement('div');
+    flash.style.position = 'fixed';
+    flash.style.top = '0'; flash.style.left = '0';
+    flash.style.width = '100vw'; flash.style.height = '100vh';
+    flash.style.zIndex = '9999';
+    flash.style.pointerEvents = 'none';
+    flash.style.animation = 'flashScreen 1s ease-out forwards';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1000);
 }
 
 // --- CORE FUNCTIONS ---
@@ -91,18 +116,39 @@ function showTab(tabId) {
     }
 }
 
+function useSkill(type) {
+    if (type === 'heal' && cooldowns.heal === 0 && coins >= 50) {
+        if (p1HP >= upgrades.hp) return; 
+        coins -= 50;
+        let healAmount = Math.floor(upgrades.hp * 0.3); 
+        p1HP = Math.min(upgrades.hp, p1HP + healAmount);
+        cooldowns.heal = 3; 
+        createDamagePop("+HP", 'p1-img', '#4ade80'); 
+        if(!isMuted) sounds.win.play().catch(() => {}); 
+    } 
+    else if (type === 'double' && cooldowns.double === 0 && coins >= 100) {
+        coins -= 100;
+        buffs.doubleDamage = true;
+        cooldowns.double = 3; 
+        if(!isMuted) sounds.pulse.play().catch(() => {}); 
+    }
+    updateUI();
+}
+
 function rollDice() {
     const diceElements = document.querySelectorAll('.dice-img');
     diceElements.forEach(d => d.classList.add('shake'));
     setTimeout(() => diceElements.forEach(d => d.classList.remove('shake')), 400);
 
+    if (cooldowns.heal > 0) cooldowns.heal--;
+    if (cooldowns.double > 0) cooldowns.double--;
+
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
 
     let prefix = (activeSkin === 'neon') ? 'neon-' : '';
-    // Making sure the player uses the correct skin and enemy uses green
-    document.getElementById("p1-img").src = `assets/${prefix}green-${d1}.png`; 
-    document.getElementById("p2-img").src = `assets/green-${d2}.png`;
+    document.getElementById("p1-img").src = `assets/${prefix}red-${d1}.png`; 
+    document.getElementById("p2-img").src = `assets/${prefix}green-${d2}.png`;
     
     if(!isMuted) {
         sounds.roll.currentTime = 0;
@@ -111,9 +157,36 @@ function rollDice() {
 
     if (d1 > d2) {
         let dmg = d1 * 5;
+        let isCrit = false;
+
+        let totalCritChance = 5 + upgrades.luck; 
+        
+        if (Math.random() * 100 < totalCritChance) {
+            isCrit = true;
+            dmg *= 2; 
+        }
+        
+        let usedDoubleSkill = false;
+        if (buffs.doubleDamage) {
+            dmg *= 2; 
+            buffs.doubleDamage = false; 
+            usedDoubleSkill = true;
+        }
+        
         p2HP -= dmg;
         coins += (10 * upgrades.mult);
-        createDamagePop(dmg, 'p2-img'); 
+
+        if (isCrit) {
+            document.body.classList.add('violent-shake');
+            setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+            createDamagePop(`CRIT! -${dmg}`, 'p2-img', '#ef4444', true);
+            if(!isMuted) sounds.pulse.play().catch(() => {}); 
+        } else if (usedDoubleSkill) {
+            createDamagePop(`-${dmg}`, 'p2-img', '#fbbf24', false); 
+        } else {
+            createDamagePop(dmg, 'p2-img'); 
+        }
+
     } else if (d2 > d1) {
         let dmg = d2 * 5;
         p1HP -= dmg;
@@ -132,16 +205,26 @@ function rollDice() {
 function checkBattleStatus() {
     if (p2HP <= 0) {
         if(!isMuted) sounds.win.play().catch(() => {});
-        tokens += 5;
+        
+        if (level % 10 === 0) {
+            tokens += 25; 
+            coins += (100 * upgrades.mult); 
+        } else {
+            tokens += 5; 
+        }
+        
         totalWins++;
         level++;
         if (level > highestLevel) highestLevel = level;
-        p2HP = 100 + (level * 5);
+        
+        if (level % 10 === 0) triggerBossFlash();
+
+        p2HP = getEnemyMaxHP(level);
         p1HP = upgrades.hp; 
     } else if (p1HP <= 0) {
         if(!isMuted) sounds.lose.play().catch(() => {});
         p1HP = upgrades.hp;
-        p2HP = 100 + (level * 5);
+        p2HP = getEnemyMaxHP(level);
     }
 }
 
@@ -171,7 +254,7 @@ function handlePrestige() {
         prestigeCount++;
         level = 1;
         coins = 0;
-        p2HP = 100 + (level * 5);
+        p2HP = getEnemyMaxHP(level); 
         p1HP = upgrades.hp;
         updateUI();
         alert("PRESTIGE ACTIVATED! You have restarted at Level 1 with a new Prestige Star.");
@@ -185,17 +268,75 @@ function updateUI() {
     document.getElementById("tokens-game").textContent = tokens;
     document.getElementById("lvl-num").textContent = level;
     
+    let maxP2HP = getEnemyMaxHP(level);
     let p1Percent = Math.max(0, (p1HP / upgrades.hp * 100));
-    let p2Percent = Math.max(0, (p2HP / (100 + (level * 5)) * 100));
+    let p2Percent = Math.max(0, (p2HP / maxP2HP * 100));
     
     document.getElementById("p1-hp").style.width = p1Percent + "%";
-    document.getElementById("p2-hp").style.width = p2Percent + "%";
+    const p2HpBar = document.getElementById("p2-hp");
+    p2HpBar.style.width = p2Percent + "%";
+    
+    let isBoss = (level % 10 === 0);
+    document.body.classList.toggle('boss-mode', isBoss);
     
     let currentEnemy = [...enemies].reverse().find(e => level >= e.minLvl) || enemies[0];
+    
+    document.body.classList.remove('env-forest', 'env-dungeon', 'env-badlands', 'env-void', 'env-volcano');
+    
+    if (currentEnemy.name === "Slime" || currentEnemy.name === "Goblin") {
+        document.body.classList.add('env-forest');
+    } else if (currentEnemy.name === "Skeleton") {
+        document.body.classList.add('env-dungeon');
+    } else if (currentEnemy.name === "Orc Warrior") {
+        document.body.classList.add('env-badlands');
+    } else if (currentEnemy.name === "Void Wraith") {
+        document.body.classList.add('env-void');
+    } else if (currentEnemy.name === "DRAGON") {
+        document.body.classList.add('env-volcano');
+    }
+
     const eName = document.getElementById("enemy-name");
     if(eName) {
-        eName.textContent = currentEnemy.name;
-        eName.style.color = currentEnemy.color;
+        if (isBoss) {
+            eName.innerHTML = `👑 BOSS: ${currentEnemy.name} 👑`;
+            eName.classList.add('boss-name');
+            p2HpBar.classList.add('boss-hp-bar');
+            eName.style.color = "#ef4444"; 
+        } else {
+            eName.textContent = currentEnemy.name;
+            eName.classList.remove('boss-name');
+            p2HpBar.classList.remove('boss-hp-bar');
+            eName.style.color = currentEnemy.color; 
+        }
+    }
+
+    const healBtn = document.getElementById('skill-heal');
+    const doubleBtn = document.getElementById('skill-double');
+
+    if (healBtn) {
+        if (cooldowns.heal > 0) {
+            healBtn.disabled = true;
+            healBtn.innerHTML = `⏳ CD: ${cooldowns.heal}`;
+        } else {
+            healBtn.disabled = (coins < 50 || p1HP >= upgrades.hp);
+            healBtn.innerHTML = `💚 HEAL<br><span class="skill-cost">50 💰</span>`;
+        }
+    }
+
+    if (doubleBtn) {
+        if (buffs.doubleDamage) {
+            doubleBtn.classList.add('active-buff');
+            doubleBtn.innerHTML = `🔥 ACTIVE`;
+            doubleBtn.disabled = true;
+        } else if (cooldowns.double > 0) {
+            doubleBtn.classList.remove('active-buff');
+            doubleBtn.disabled = true;
+            doubleBtn.innerHTML = `⏳ CD: ${cooldowns.double}`;
+        } else {
+            doubleBtn.classList.remove('active-buff');
+            doubleBtn.disabled = (coins < 100);
+            doubleBtn.innerHTML = `⚔️ 2X DMG<br><span class="skill-cost">100 💰</span>`;
+        }
     }
 
     document.querySelectorAll('.skin-btn').forEach(btn => {
@@ -248,9 +389,10 @@ function saveData() {
     localStorage.setItem("upgrades", JSON.stringify(upgrades));
     localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins));
     localStorage.setItem("activeSkin", activeSkin);
+    localStorage.setItem("cooldowns", JSON.stringify(cooldowns));
+    localStorage.setItem("buffs", JSON.stringify(buffs));
 }
 
 document.getElementById("volume-slider").value = 0.5;
 adjustVolume();
 updateUI();
-        
