@@ -55,11 +55,11 @@ function createDamagePop(damage, targetId) {
 
     const pop = document.createElement('div');
     pop.className = 'damage-pop';
-    pop.textContent = -${damage};
+    pop.textContent = `-${damage}`;
     
     const offsetX = (Math.random() - 0.5) * 40;
-    pop.style.left = calc(50% - 10px + ${offsetX}px);
-    pop.style.top = 20px;
+    pop.style.left = `calc(50% - 10px + ${offsetX}px)`;
+    pop.style.top = `20px`;
 
     parent.appendChild(pop);
 
@@ -77,7 +77,7 @@ function startGame() {
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById(tab-${tabId}).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
     
     const nav = document.getElementById('main-nav');
     const wallet = document.getElementById('main-wallet');
@@ -101,13 +101,14 @@ function rollDice() {
 
     let prefix = (activeSkin === 'neon') ? 'neon-' : '';
     // Making sure the player uses the correct skin and enemy uses green
-    document.getElementById("p1-img").src = assets/${prefix}green-${d1}.png; 
-    document.getElementById("p2-img").src = assets/green-${d2}.png;
+    document.getElementById("p1-img").src = `assets/${prefix}green-${d1}.png`; 
+    document.getElementById("p2-img").src = `assets/green-${d2}.png`;
     
     if(!isMuted) {
         sounds.roll.currentTime = 0;
         sounds.roll.play().catch(() => {});
     }
+
     if (d1 > d2) {
         let dmg = d1 * 5;
         p2HP -= dmg;
@@ -252,3 +253,4 @@ function saveData() {
 document.getElementById("volume-slider").value = 0.5;
 adjustVolume();
 updateUI();
+        
