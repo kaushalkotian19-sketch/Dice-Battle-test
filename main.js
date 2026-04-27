@@ -24,6 +24,37 @@ let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false }
 
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
+// --- DAILY REWARD STATE ---
+let lastLoginDate = localStorage.getItem("lastLoginDate") || "";
+let loginStreak = Number(localStorage.getItem("loginStreak")) || 0;
+let pendingReward = null;
+
+const dailyRewards = [
+    { type: 'coins', amount: 100, text: "100 💰" },
+    { type: 'coins', amount: 250, text: "250 💰" },
+    { type: 'coins', amount: 500, text: "500 💰" },
+    { type: 'tokens', amount: 5, text: "5 💎" },
+    { type: 'tokens', amount: 10, text: "10 💎" },
+    { type: 'tokens', amount: 15, text: "15 💎" },
+    { type: 'tokens', amount: 25, text: "25 💎" } 
+];
+
+// --- ACHIEVEMENT TRACKING ---
+let stats = JSON.parse(localStorage.getItem("stats")) || { bossesDefeated: 0, critsLanded: 0 };
+let achievements = JSON.parse(localStorage.getItem("achievements")) || {
+    firstBlood: false,
+    giantSlayer: false,
+    highRoller: false,
+    maxLevel: false
+};
+
+const achievementData = [
+    { id: 'firstBlood', icon: '🩸', title: 'First Blood', desc: 'Win your first battle.', max: 1, getProgress: () => totalWins },
+    { id: 'giantSlayer', icon: '🐉', title: 'Giant Slayer', desc: 'Defeat 5 Bosses.', max: 5, getProgress: () => stats.bossesDefeated },
+    { id: 'highRoller', icon: '🎲', title: 'High Roller', desc: 'Land 50 Critical Hits.', max: 50, getProgress: () => stats.critsLanded },
+    { id: 'maxLevel', icon: '⭐', title: 'Prestige Ready', desc: 'Reach Level 50.', max: 50, getProgress: () => level }
+];
+
 // --- AUDIO SYSTEM ---
 const sounds = {
     roll: new Audio('dice_roll.mp3'),
@@ -91,6 +122,67 @@ function triggerBossFlash() {
     setTimeout(() => flash.remove(), 1000);
 }
 
+// --- DAILY REWARDS LOGIC ---
+function checkDailyReward() {
+    const today = new Date().toDateString(); 
+    
+    if (lastLoginDate !== today) {
+        let tempStreak = loginStreak;
+        let yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") {
+            tempStreak = 0; 
+        }
+        
+        tempStreak++;
+        if (tempStreak > 7) tempStreak = 1; 
+        
+        pendingReward = dailyRewards[tempStreak - 1];
+        
+        document.getElementById('streak-day').textContent = tempStreak;
+        document.getElementById('reward-amount').textContent = `+${pendingReward.text}`;
+        document.getElementById('daily-reward-modal').style.display = 'flex';
+    }
+}
+
+function claimDailyReward() {
+    const today = new Date().toDateString();
+    
+    let yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") {
+        loginStreak = 0; 
+    }
+    
+    loginStreak++;
+    if (loginStreak > 7) loginStreak = 1;
+
+    if (pendingReward.type === 'coins') coins += pendingReward.amount;
+    if (pendingReward.type === 'tokens') tokens += pendingReward.amount;
+
+    lastLoginDate = today;
+    document.getElementById('daily-reward-modal').style.display = 'none';
+    
+    if(!isMuted) sounds.win.play().catch(() => {});
+    updateUI();
+}
+
+// --- ACHIEVEMENT LOGIC ---
+function checkAchievements() {
+    let newlyUnlocked = false;
+    achievementData.forEach(ach => {
+        if (!achievements[ach.id]) { 
+            if (ach.getProgress() >= ach.max) {
+                achievements[ach.id] = true;
+                newlyUnlocked = true;
+                createDamagePop("🏆 BADGE UNLOCKED!", 'p1-img', '#fbbf24', true);
+            }
+        }
+    });
+    if (newlyUnlocked) updateUI();
+}
+
 // --- CORE FUNCTIONS ---
 function startGame() {
     showTab('arena');
@@ -98,6 +190,8 @@ function startGame() {
         sounds.pulse.play().catch(e => console.log("Audio play blocked:", e));
         sounds.bgm.play().catch(e => console.log("BGM play blocked:", e));
     }
+    
+    setTimeout(checkDailyReward, 500); 
 }
 
 function showTab(tabId) {
@@ -164,6 +258,7 @@ function rollDice() {
         if (Math.random() * 100 < totalCritChance) {
             isCrit = true;
             dmg *= 2; 
+            stats.critsLanded++; // Track CRITS
         }
         
         let usedDoubleSkill = false;
@@ -199,6 +294,7 @@ function rollDice() {
     }
 
     checkBattleStatus();
+    checkAchievements();
     updateUI();
 }
 
@@ -209,6 +305,7 @@ function checkBattleStatus() {
         if (level % 10 === 0) {
             tokens += 25; 
             coins += (100 * upgrades.mult); 
+            stats.bossesDefeated++; // Track BOSS KILLS
         } else {
             tokens += 5; 
         }
@@ -347,6 +444,29 @@ function updateUI() {
         }
     });
 
+    // Render Achievements UI 
+    const achContainer = document.getElementById('achievements-container');
+    if (achContainer) {
+        achContainer.innerHTML = ''; 
+        achievementData.forEach(ach => {
+            let isUnlocked = achievements[ach.id];
+            let progress = Math.min(ach.getProgress(), ach.max);
+            
+            let div = document.createElement('div');
+            div.className = `achievement-card ${isUnlocked ? 'unlocked' : ''}`;
+            
+            div.innerHTML = `
+                <div class="ach-icon">${isUnlocked ? ach.icon : '🔒'}</div>
+                <div class="ach-info">
+                    <p class="ach-title">${ach.title}</p>
+                    <p class="ach-desc">${ach.desc}</p>
+                </div>
+                <div class="ach-progress">${isUnlocked ? 'DONE' : progress + '/' + ach.max}</div>
+            `;
+            achContainer.appendChild(div);
+        });
+    }
+
     document.getElementById("best-run").textContent = highestLevel;
     document.getElementById("total-wins").textContent = totalWins;
     document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount);
@@ -391,8 +511,15 @@ function saveData() {
     localStorage.setItem("activeSkin", activeSkin);
     localStorage.setItem("cooldowns", JSON.stringify(cooldowns));
     localStorage.setItem("buffs", JSON.stringify(buffs));
+    
+    // Save new Phase 3 items
+    localStorage.setItem("lastLoginDate", lastLoginDate);
+    localStorage.setItem("loginStreak", loginStreak);
+    localStorage.setItem("stats", JSON.stringify(stats));
+    localStorage.setItem("achievements", JSON.stringify(achievements));
 }
 
 document.getElementById("volume-slider").value = 0.5;
 adjustVolume();
 updateUI();
+        
