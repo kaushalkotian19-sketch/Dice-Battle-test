@@ -29,6 +29,25 @@ body.env-volcano { --bg-gradient: radial-gradient(circle at top, #7f1d1d 0%, #02
 
 .main-title { font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
 
+/* DEVELOPER CREDIT */
+.developer-credit {
+    position: absolute;
+    bottom: 40px; 
+    font-size: 0.75rem; 
+    letter-spacing: 3px; 
+    color: rgba(255, 255, 255, 0.4); 
+    text-transform: uppercase;
+    text-align: center;
+    width: 100%;
+}
+
+.dev-name {
+    color: var(--gold);
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    margin-left: 5px;
+}
+
 /* THE GLASS LOOK */
 .glass {
     background: var(--glass);
@@ -102,23 +121,65 @@ body.env-volcano { --bg-gradient: radial-gradient(circle at top, #7f1d1d 0%, #02
 .skin-btn.owned { border-color: var(--gold); color: var(--gold); background: rgba(251, 191, 36, 0.1); }
 .prestige-btn { border-color: #a855f7; color: #a855f7; }
 
-/* HALL OF FAME */
+/* HALL OF FAME & ACHIEVEMENTS */
 .section-title { text-align: center; margin-top: 20px; }
 .stat-row { display: flex; justify-content: space-between; padding: 15px 0; font-weight: bold; font-size: 1.1rem; }
 .gold-text { color: var(--gold); }
 hr { border: 0; border-top: 1px solid var(--border); margin: 0; }
+
+.achievements-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 15px; }
+.achievement-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    padding: 15px; border-radius: 12px;
+    display: flex; align-items: center; gap: 15px;
+    opacity: 0.6; 
+    transition: all 0.3s ease;
+}
+.achievement-card.unlocked {
+    opacity: 1;
+    border-color: var(--gold);
+    background: rgba(251, 191, 36, 0.1);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+}
+.ach-icon { font-size: 2.2rem; }
+.ach-info { display: flex; flex-direction: column; flex: 1; }
+.ach-title { font-weight: 900; color: white; margin: 0; font-size: 1.1rem; text-transform: uppercase; }
+.ach-desc { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin: 5px 0 0 0; }
+.ach-progress { font-size: 0.9rem; color: var(--gold); font-weight: bold; text-align: right; }
 
 /* NAVIGATION & WALLET */
 .nav-bar { position: fixed; bottom: 65px; width: 94%; left: 3%; height: 60px; display: flex; justify-content: space-around; align-items: center; padding: 0; z-index: 10; margin: 0; }
 .nav-bar button { background: none; border: none; color: white; font-weight: bold; flex: 1; height: 100%; font-size: 0.9rem; cursor: pointer; }
 .wallet-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #0f172a; display: flex; justify-content: space-evenly; align-items: center; border-top: 1px solid var(--border); font-weight: bold; z-index: 5; }
 
+/* DAILY REWARD MODAL */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    text-align: center; 
+    width: 85%; 
+    max-width: 350px;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.reward-box {
+    font-size: 1.8rem; font-weight: 900; color: var(--gold);
+    margin: 20px 0; padding: 20px; 
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px; border: 1px solid var(--border);
+    box-shadow: inset 0 0 15px rgba(251, 191, 36, 0.2);
+}
+
 /* ANIMATIONS & EFFECTS */
 .shake { animation: shake 0.4s ease-in-out; }
 @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(15deg); } 75% { transform: rotate(-15deg); } }
 input[type=range] { width: 100%; margin-bottom: 10px; }
 
-/* COMBAT JUICE - FLOATING DAMAGE & CRITS */
 .damage-pop {
     position: absolute;
     color: #ef4444;
@@ -128,11 +189,7 @@ input[type=range] { width: 100%; margin-bottom: 10px; }
     animation: floatUp 0.8s ease-out forwards;
     z-index: 100;
 }
-
-@keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-50px); }
-}
+@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
 .violent-shake { animation: violentShake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
 @keyframes violentShake {
@@ -141,15 +198,11 @@ input[type=range] { width: 100%; margin-bottom: 10px; }
     30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
     40%, 60% { transform: translate3d(6px, 0, 0); }
 }
-
-.crit-text {
-    font-size: 2.5rem !important; 
-    text-shadow: 0 0 15px #ef4444, 0 0 5px #ffffff;
-    z-index: 999;
-}
+.crit-text { font-size: 2.5rem !important; text-shadow: 0 0 15px #ef4444, 0 0 5px #ffffff; z-index: 999; }
 
 /* --- BOSS BATTLE STYLES --- */
 body.boss-mode { --bg-gradient: radial-gradient(circle at top, #450a0a 0%, #020617 100%); }
 .boss-name { text-shadow: 0 0 10px #ef4444; font-size: 1.1rem !important; font-weight: 900; }
 .boss-hp-bar { background: linear-gradient(90deg, #a855f7, #ef4444) !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
 @keyframes flashScreen { 0% { background-color: rgba(239, 68, 68, 0.6); } 100% { background-color: transparent; } }
+    
