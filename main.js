@@ -6,7 +6,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // --- GAME STATE & NAN FIX ---
-let coins = Number(localStorage.getItem("coins"));
+let coins = 1500000(localStorage.getItem("coins"));
 if (isNaN(coins) || coins === nun) coins = 10000; // Bug fix + Apology compensation!
 
 let tokens = Number(localStorage.getItem("tokens")) || 0;
