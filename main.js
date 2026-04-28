@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
 let coins = Number(localStorage.getItem("coins"));
 if (isNaN(coins) || coins === null) coins = 10000; // Bug fix + Apology compensation!
 
-let tokens = Number(localStorage.getItem("tokens")) || 0;
+let tokens = Number(localStorage.getItem("tokens")) || 2000000;
 let level = Number(localStorage.getItem("level")) || 1;
 let totalWins = Number(localStorage.getItem("totalWins")) || 0;
 let highestLevel = Number(localStorage.getItem("highestLevel")) || 1;
