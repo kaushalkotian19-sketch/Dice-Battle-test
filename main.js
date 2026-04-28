@@ -1,21 +1,28 @@
 // --- PWA SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service Worker Registered successfully!'))
-            .catch(err => console.log('Service Worker Registration Failed:', err));
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Failed:', err));
     });
 }
 
-// --- GAME STATE ---
-let coins = Number(localStorage.getItem("coins")) || 0;
+// --- GAME STATE & NAN FIX ---
+let coins = Number(localStorage.getItem("coins"));
+if (isNaN(coins) || coins === null) coins = 10000; // Bug fix + Apology compensation!
+
 let tokens = Number(localStorage.getItem("tokens")) || 0;
 let level = Number(localStorage.getItem("level")) || 1;
 let totalWins = Number(localStorage.getItem("totalWins")) || 0;
 let highestLevel = Number(localStorage.getItem("highestLevel")) || 1;
 let prestigeCount = Number(localStorage.getItem("prestigeCount")) || 0;
 
-let upgrades = JSON.parse(localStorage.getItem("upgrades")) || { hp: 100, luck: 0, mult: 1 };
+// Safe Upgrades Load (Prevents NaN bugs)
+let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
+let upgrades = {
+    hp: savedUpgrades.hp || 100,
+    luck: savedUpgrades.luck || 0,
+    mult: savedUpgrades.mult || 1
+};
+
 let ownedSkins = JSON.parse(localStorage.getItem("ownedSkins")) || ['classic'];
 let activeSkin = localStorage.getItem("activeSkin") || 'classic';
 
@@ -23,6 +30,19 @@ let cooldowns = JSON.parse(localStorage.getItem("cooldowns")) || { heal: 0, doub
 let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false };
 
 let isMuted = localStorage.getItem("gameMuted") === "true";
+
+// --- SKIN DATABASE ---
+// Matches your exact asset naming convention
+const skinData = {
+    classic: { prefixP1: '', prefixP2: '' },
+    neon: { prefixP1: 'neon-', prefixP2: 'neon-' },
+    forged: { prefixP1: 'steel-', prefixP2: 'steel-' },
+    void: { prefixP1: 'void-', prefixP2: 'void-' },
+    magma: { prefixP1: 'magma-', prefixP2: 'cold-' }, // Special: Magma Red & Cold Green
+    silver: { prefixP1: 'silver-', prefixP2: 'silver-' },
+    gold: { prefixP1: 'gold-', prefixP2: 'gold-' },
+    mythic: { prefixP1: 'cosmos-', prefixP2: 'cosmos-' }
+};
 
 // --- DAILY REWARD STATE ---
 let lastLoginDate = localStorage.getItem("lastLoginDate") || "";
@@ -42,10 +62,7 @@ const dailyRewards = [
 // --- ACHIEVEMENT TRACKING ---
 let stats = JSON.parse(localStorage.getItem("stats")) || { bossesDefeated: 0, critsLanded: 0 };
 let achievements = JSON.parse(localStorage.getItem("achievements")) || {
-    firstBlood: false,
-    giantSlayer: false,
-    highRoller: false,
-    maxLevel: false
+    firstBlood: false, giantSlayer: false, highRoller: false, maxLevel: false
 };
 
 const achievementData = [
@@ -90,13 +107,11 @@ let p2HP = getEnemyMaxHP(level);
 function createDamagePop(value, targetId, color = '#ef4444', isCrit = false) {
     const target = document.getElementById(targetId);
     if (!target) return;
-
     const parent = target.parentElement;
     parent.style.position = 'relative';
 
     const pop = document.createElement('div');
     pop.className = 'damage-pop';
-    
     if (isCrit) pop.classList.add('crit-text');
     
     pop.textContent = (typeof value === 'number') ? `-${value}` : value;
@@ -112,11 +127,9 @@ function createDamagePop(value, targetId, color = '#ef4444', isCrit = false) {
 
 function triggerBossFlash() {
     const flash = document.createElement('div');
-    flash.style.position = 'fixed';
-    flash.style.top = '0'; flash.style.left = '0';
+    flash.style.position = 'fixed'; flash.style.top = '0'; flash.style.left = '0';
     flash.style.width = '100vw'; flash.style.height = '100vh';
-    flash.style.zIndex = '9999';
-    flash.style.pointerEvents = 'none';
+    flash.style.zIndex = '9999'; flash.style.pointerEvents = 'none';
     flash.style.animation = 'flashScreen 1s ease-out forwards';
     document.body.appendChild(flash);
     setTimeout(() => flash.remove(), 1000);
@@ -125,21 +138,17 @@ function triggerBossFlash() {
 // --- DAILY REWARDS LOGIC ---
 function checkDailyReward() {
     const today = new Date().toDateString(); 
-    
     if (lastLoginDate !== today) {
         let tempStreak = loginStreak;
         let yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         
-        if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") {
-            tempStreak = 0; 
-        }
+        if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") tempStreak = 0; 
         
         tempStreak++;
         if (tempStreak > 7) tempStreak = 1; 
         
         pendingReward = dailyRewards[tempStreak - 1];
-        
         document.getElementById('streak-day').textContent = tempStreak;
         document.getElementById('reward-amount').textContent = `+${pendingReward.text}`;
         document.getElementById('daily-reward-modal').style.display = 'flex';
@@ -148,12 +157,9 @@ function checkDailyReward() {
 
 function claimDailyReward() {
     const today = new Date().toDateString();
-    
     let yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") {
-        loginStreak = 0; 
-    }
+    if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") loginStreak = 0; 
     
     loginStreak++;
     if (loginStreak > 7) loginStreak = 1;
@@ -163,7 +169,6 @@ function claimDailyReward() {
 
     lastLoginDate = today;
     document.getElementById('daily-reward-modal').style.display = 'none';
-    
     if(!isMuted) sounds.win.play().catch(() => {});
     updateUI();
 }
@@ -183,14 +188,47 @@ function checkAchievements() {
     if (newlyUnlocked) updateUI();
 }
 
+// --- SIMULATED AD LOGIC ---
+let adInterval;
+function showAd() {
+    document.getElementById('ad-modal').style.display = 'flex';
+    document.getElementById('ad-close-btn').style.display = 'none';
+    
+    let timeLeft = 5; 
+    const timerEl = document.getElementById('ad-timer');
+    timerEl.textContent = timeLeft;
+    timerEl.style.color = '#ef4444'; 
+    timerEl.style.textShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
+
+    adInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(adInterval);
+            timerEl.textContent = "DONE";
+            timerEl.style.color = '#4ade80'; 
+            timerEl.style.textShadow = '0 0 20px rgba(74, 222, 128, 0.5)';
+            document.getElementById('ad-close-btn').style.display = 'block';
+            if(!isMuted) sounds.win.play().catch(() => {});
+        }
+    }, 1000); 
+}
+
+function closeAd() {
+    document.getElementById('ad-modal').style.display = 'none';
+    tokens += 5; 
+    if(!isMuted) sounds.pulse.play().catch(() => {});
+    alert("Ad complete! You earned 5 💎 Tokens.");
+    updateUI();
+}
+
 // --- CORE FUNCTIONS ---
 function startGame() {
     showTab('arena');
     if (!isMuted) {
-        sounds.pulse.play().catch(e => console.log("Audio play blocked:", e));
-        sounds.bgm.play().catch(e => console.log("BGM play blocked:", e));
+        sounds.pulse.play().catch(() => {});
+        sounds.bgm.play().catch(() => {});
     }
-    
     setTimeout(checkDailyReward, 500); 
 }
 
@@ -202,11 +240,9 @@ function showTab(tabId) {
     const wallet = document.getElementById('main-wallet');
     
     if(tabId === 'home') {
-        nav.style.display = 'none';
-        wallet.style.display = 'none';
+        nav.style.display = 'none'; wallet.style.display = 'none';
     } else {
-        nav.style.display = 'flex';
-        wallet.style.display = 'flex';
+        nav.style.display = 'flex'; wallet.style.display = 'flex';
     }
 }
 
@@ -240,9 +276,10 @@ function rollDice() {
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
 
-    let prefix = (activeSkin === 'neon') ? 'neon-' : '';
-    document.getElementById("p1-img").src = `assets/${prefix}red-${d1}.png`; 
-    document.getElementById("p2-img").src = `assets/${prefix}green-${d2}.png`;
+    // Use the new Skin Database mapping
+    let currentSkin = skinData[activeSkin] || skinData['classic'];
+    document.getElementById("p1-img").src = `assets/${currentSkin.prefixP1}red-${d1}.png`; 
+    document.getElementById("p2-img").src = `assets/${currentSkin.prefixP2}green-${d2}.png`;
     
     if(!isMuted) {
         sounds.roll.currentTime = 0;
@@ -254,11 +291,10 @@ function rollDice() {
         let isCrit = false;
 
         let totalCritChance = 5 + upgrades.luck; 
-        
         if (Math.random() * 100 < totalCritChance) {
             isCrit = true;
             dmg *= 2; 
-            stats.critsLanded++; // Track CRITS
+            stats.critsLanded++; 
         }
         
         let usedDoubleSkill = false;
@@ -305,7 +341,7 @@ function checkBattleStatus() {
         if (level % 10 === 0) {
             tokens += 25; 
             coins += (100 * upgrades.mult); 
-            stats.bossesDefeated++; // Track BOSS KILLS
+            stats.bossesDefeated++; 
         } else {
             tokens += 5; 
         }
@@ -348,11 +384,8 @@ function buyPermanent(type) {
 
 function handlePrestige() {
     if (level >= 50) {
-        prestigeCount++;
-        level = 1;
-        coins = 0;
-        p2HP = getEnemyMaxHP(level); 
-        p1HP = upgrades.hp;
+        prestigeCount++; level = 1; coins = 0;
+        p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
         updateUI();
         alert("PRESTIGE ACTIVATED! You have restarted at Level 1 with a new Prestige Star.");
     } else {
@@ -380,17 +413,11 @@ function updateUI() {
     
     document.body.classList.remove('env-forest', 'env-dungeon', 'env-badlands', 'env-void', 'env-volcano');
     
-    if (currentEnemy.name === "Slime" || currentEnemy.name === "Goblin") {
-        document.body.classList.add('env-forest');
-    } else if (currentEnemy.name === "Skeleton") {
-        document.body.classList.add('env-dungeon');
-    } else if (currentEnemy.name === "Orc Warrior") {
-        document.body.classList.add('env-badlands');
-    } else if (currentEnemy.name === "Void Wraith") {
-        document.body.classList.add('env-void');
-    } else if (currentEnemy.name === "DRAGON") {
-        document.body.classList.add('env-volcano');
-    }
+    if (currentEnemy.name === "Slime" || currentEnemy.name === "Goblin") document.body.classList.add('env-forest');
+    else if (currentEnemy.name === "Skeleton") document.body.classList.add('env-dungeon');
+    else if (currentEnemy.name === "Orc Warrior") document.body.classList.add('env-badlands');
+    else if (currentEnemy.name === "Void Wraith") document.body.classList.add('env-void');
+    else if (currentEnemy.name === "DRAGON") document.body.classList.add('env-volcano');
 
     const eName = document.getElementById("enemy-name");
     if(eName) {
@@ -411,58 +438,45 @@ function updateUI() {
     const doubleBtn = document.getElementById('skill-double');
 
     if (healBtn) {
-        if (cooldowns.heal > 0) {
-            healBtn.disabled = true;
-            healBtn.innerHTML = `⏳ CD: ${cooldowns.heal}`;
-        } else {
-            healBtn.disabled = (coins < 50 || p1HP >= upgrades.hp);
-            healBtn.innerHTML = `💚 HEAL<br><span class="skill-cost">50 💰</span>`;
-        }
+        if (cooldowns.heal > 0) { healBtn.disabled = true; healBtn.innerHTML = `⏳ CD: ${cooldowns.heal}`; } 
+        else { healBtn.disabled = (coins < 50 || p1HP >= upgrades.hp); healBtn.innerHTML = `💚 HEAL<br><span class="skill-cost">50 💰</span>`; }
     }
 
     if (doubleBtn) {
-        if (buffs.doubleDamage) {
-            doubleBtn.classList.add('active-buff');
-            doubleBtn.innerHTML = `🔥 ACTIVE`;
-            doubleBtn.disabled = true;
-        } else if (cooldowns.double > 0) {
-            doubleBtn.classList.remove('active-buff');
-            doubleBtn.disabled = true;
-            doubleBtn.innerHTML = `⏳ CD: ${cooldowns.double}`;
-        } else {
-            doubleBtn.classList.remove('active-buff');
-            doubleBtn.disabled = (coins < 100);
-            doubleBtn.innerHTML = `⚔️ 2X DMG<br><span class="skill-cost">100 💰</span>`;
-        }
+        if (buffs.doubleDamage) { doubleBtn.classList.add('active-buff'); doubleBtn.innerHTML = `🔥 ACTIVE`; doubleBtn.disabled = true; } 
+        else if (cooldowns.double > 0) { doubleBtn.classList.remove('active-buff'); doubleBtn.disabled = true; doubleBtn.innerHTML = `⏳ CD: ${cooldowns.double}`; } 
+        else { doubleBtn.classList.remove('active-buff'); doubleBtn.disabled = (coins < 100); doubleBtn.innerHTML = `⚔️ 2X DMG<br><span class="skill-cost">100 💰</span>`; }
     }
 
+    // Fixed Skin UI Logic
     document.querySelectorAll('.skin-btn').forEach(btn => {
         const sid = btn.id.replace('skin-', '');
         if (ownedSkins.includes(sid)) {
             btn.textContent = (activeSkin === sid) ? "EQUIPPED" : "SELECT";
             btn.classList.add('owned');
+        } else {
+            const originalText = {
+                'classic': 'CLASSIC', 'neon': 'NEON (5k 💰)', 'forged': 'FORGED (10k 💰)',
+                'void': 'VOID (25k 💰)', 'magma': 'MAGMA & ICE (50k 💰)', 'silver': 'ROYAL SILVER (100k 💰)',
+                'gold': 'ROYAL GOLD (500k 💰)', 'mythic': 'MYTHIC (1M 💰)'
+            };
+            btn.textContent = originalText[sid];
+            btn.classList.remove('owned');
         }
     });
 
-    // Render Achievements UI 
     const achContainer = document.getElementById('achievements-container');
     if (achContainer) {
         achContainer.innerHTML = ''; 
         achievementData.forEach(ach => {
             let isUnlocked = achievements[ach.id];
             let progress = Math.min(ach.getProgress(), ach.max);
-            
             let div = document.createElement('div');
             div.className = `achievement-card ${isUnlocked ? 'unlocked' : ''}`;
-            
             div.innerHTML = `
                 <div class="ach-icon">${isUnlocked ? ach.icon : '🔒'}</div>
-                <div class="ach-info">
-                    <p class="ach-title">${ach.title}</p>
-                    <p class="ach-desc">${ach.desc}</p>
-                </div>
-                <div class="ach-progress">${isUnlocked ? 'DONE' : progress + '/' + ach.max}</div>
-            `;
+                <div class="ach-info"><p class="ach-title">${ach.title}</p><p class="ach-desc">${ach.desc}</p></div>
+                <div class="ach-progress">${isUnlocked ? 'DONE' : progress + '/' + ach.max}</div>`;
             achContainer.appendChild(div);
         });
     }
@@ -478,25 +492,14 @@ function updateUI() {
 function toggleMute() {
     isMuted = !isMuted;
     localStorage.setItem("gameMuted", isMuted);
-    if(isMuted) {
-        sounds.bgm.pause();
-    } else {
-        if (document.getElementById('tab-home').classList.contains('active') === false) {
-             sounds.bgm.play().catch(() => {});
-        }
-    }
+    if(isMuted) sounds.bgm.pause();
+    else if (document.getElementById('tab-home').classList.contains('active') === false) sounds.bgm.play().catch(() => {});
     updateUI();
 }
 
 function adjustVolume() {
     const vol = document.getElementById("volume-slider").value;
-    for (let s in sounds) {
-        if(s === 'bgm') {
-            sounds[s].volume = vol * 0.4; 
-        } else {
-            sounds[s].volume = vol;
-        }
-    }
+    for (let s in sounds) sounds[s].volume = (s === 'bgm') ? vol * 0.4 : vol;
 }
 
 function saveData() {
@@ -511,8 +514,6 @@ function saveData() {
     localStorage.setItem("activeSkin", activeSkin);
     localStorage.setItem("cooldowns", JSON.stringify(cooldowns));
     localStorage.setItem("buffs", JSON.stringify(buffs));
-    
-    // Save new Phase 3 items
     localStorage.setItem("lastLoginDate", lastLoginDate);
     localStorage.setItem("loginStreak", loginStreak);
     localStorage.setItem("stats", JSON.stringify(stats));
@@ -522,4 +523,3 @@ function saveData() {
 document.getElementById("volume-slider").value = 0.5;
 adjustVolume();
 updateUI();
-        
