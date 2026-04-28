@@ -67,6 +67,14 @@
 
         <section id="tab-vault" class="tab-content">
             <div class="main-scroll-area">
+                
+                <div class="shop-section glass" style="border-color: #a855f7;">
+                    <h3 style="color: #a855f7;">💎 FREE DIAMONDS</h3>
+                    <button class="up-btn" onclick="showAd()" style="background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: white; margin-top: 10px;">
+                        📺 WATCH AD (+5 💎)
+                    </button>
+                </div>
+
                 <div class="shop-section glass">
                     <h3>✨ PERMANENT UPGRADES</h3>
                     <div class="upgrade-grid">
@@ -80,6 +88,12 @@
                     <div class="skin-grid">
                         <button id="skin-classic" class="skin-btn" onclick="buySkin('classic', 0)">CLASSIC</button>
                         <button id="skin-neon" class="skin-btn" onclick="buySkin('neon', 5000)">NEON (5k 💰)</button>
+                        <button id="skin-forged" class="skin-btn" onclick="buySkin('forged', 10000)">FORGED (10k 💰)</button>
+                        <button id="skin-void" class="skin-btn" onclick="buySkin('void', 25000)">VOID (25k 💰)</button>
+                        <button id="skin-magma" class="skin-btn" onclick="buySkin('magma', 50000)">MAGMA & ICE (50k 💰)</button>
+                        <button id="skin-silver" class="skin-btn" onclick="buySkin('silver', 100000)">ROYAL SILVER (100k 💰)</button>
+                        <button id="skin-gold" class="skin-btn" onclick="buySkin('gold', 500000)">ROYAL GOLD (500k 💰)</button>
+                        <button id="skin-mythic" class="skin-btn" onclick="buySkin('mythic', 1000000)">MYTHIC (1M 💰)</button>
                     </div>
                 </div>
 
@@ -126,6 +140,19 @@
                     <span id="reward-amount">+100 💰</span>
                 </div>
                 <button class="enter-btn" onclick="claimDailyReward()" style="width: 100%; margin-top: 10px;">CLAIM</button>
+            </div>
+        </div>
+
+        <div id="ad-modal" class="modal-overlay" style="display: none; z-index: 3000; background: #050505;">
+            <div style="text-align: center; width: 100%;">
+                <h2 style="color: white; letter-spacing: 2px;">SIMULATED VIDEO AD</h2>
+                <p style="color: rgba(255,255,255,0.5);">Please wait to claim your reward...</p>
+                
+                <div id="ad-timer" style="font-size: 5rem; font-weight: 900; color: #ef4444; margin: 40px 0; text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);">5</div>
+                
+                <button id="ad-close-btn" class="glass-btn" style="display: none; width: 80%; max-width: 300px; margin: 0 auto; border-color: var(--gold); color: var(--gold); font-size: 1.2rem; padding: 15px;" onclick="closeAd()">
+                    CLAIM REWARD 💎
+                </button>
             </div>
         </div>
 
