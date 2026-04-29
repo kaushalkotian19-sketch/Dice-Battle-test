@@ -1,7 +1,9 @@
+// --- PWA SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Failed:', err)));
 }
 
+// --- GAME STATE ---
 let coins = Number(localStorage.getItem("coins"));
 if (isNaN(coins) || coins === null) coins = 10000;
 
@@ -23,6 +25,7 @@ let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false }
 
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
+// --- SKIN DATABASE ---
 const skinData = {
     classic: { id: 'classic', name: 'CLASSIC', price: 0, prefixP1: '', prefixP2: '' },
     neon: { id: 'neon', name: 'NEON', price: 5000, prefixP1: 'neon-', prefixP2: 'neon-' },
@@ -31,9 +34,10 @@ const skinData = {
     magma: { id: 'magma', name: 'MAGMA & ICE', price: 50000, prefixP1: 'magma-', prefixP2: 'cold-' },
     silver: { id: 'silver', name: 'ROYAL SILVER', price: 100000, prefixP1: 'silver-', prefixP2: 'silver-' },
     gold: { id: 'gold', name: 'ROYAL GOLD', price: 500000, prefixP1: 'gold-', prefixP2: 'gold-' },
-    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'mythic-', prefixP2: 'mythic-' }
+    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'cosmos-', prefixP2: 'cosmos-' } // Setup for your 'cosmos-' files!
 };
 
+// --- DAILY REWARD STATE ---
 let lastLoginDate = localStorage.getItem("lastLoginDate") || "";
 let loginStreak = Number(localStorage.getItem("loginStreak")) || 0;
 let pendingReward = null;
@@ -45,6 +49,7 @@ const dailyRewards = [
     { type: 'tokens', amount: 25, text: "25 💎" } 
 ];
 
+// --- ACHIEVEMENT TRACKING ---
 let stats = JSON.parse(localStorage.getItem("stats")) || { bossesDefeated: 0, critsLanded: 0 };
 let achievements = JSON.parse(localStorage.getItem("achievements")) || { firstBlood: false, giantSlayer: false, highRoller: false, maxLevel: false };
 
@@ -55,6 +60,7 @@ const achievementData = [
     { id: 'maxLevel', icon: '⭐', title: 'Prestige Ready', desc: 'Reach Level 50.', max: 50, getProgress: () => level }
 ];
 
+// --- MISSION SYSTEM ---
 const missionPool = [
     { id: 'crit', target: 5, desc: 'Land 5 Critical Hits' },
     { id: 'heal', target: 3, desc: 'Use the Heal Skill 3 times' },
@@ -63,12 +69,14 @@ const missionPool = [
 ];
 let currentMission = JSON.parse(localStorage.getItem("currentMission")) || { ...missionPool[0], progress: 0 };
 
+// --- AUDIO SYSTEM ---
 const sounds = {
     roll: new Audio('dice_roll.mp3'), win: new Audio('win_ding.mp3'), lose: new Audio('lose_thud.mp3'),
     pulse: new Audio('pulse.mp3'), heartbeat: new Audio('heartbeat.mp3'), bgm: new Audio('ambient_synth.mp3')
 };
 sounds.bgm.loop = true; sounds.bgm.volume = 0.4;
 
+// --- BESTIARY ---
 const enemies = [
     { name: "Slime", minLvl: 1, color: "#22c55e" }, { name: "Goblin", minLvl: 5, color: "#4ade80" },
     { name: "Skeleton", minLvl: 15, color: "#cbd5e1" }, { name: "Orc Warrior", minLvl: 30, color: "#fb923c" },
@@ -81,6 +89,7 @@ function getEnemyMaxHP(lvl) {
 
 let p1HP = upgrades.hp; let p2HP = getEnemyMaxHP(level);
 
+// --- CORE HELPERS ---
 function formatPrice(price) {
     if (price === 0) return 'FREE';
     if (price >= 1000000) return (price / 1000000) + 'M 💰';
@@ -106,6 +115,7 @@ function triggerBossFlash() {
     document.body.appendChild(flash); setTimeout(() => flash.remove(), 1000);
 }
 
+// --- DAILY REWARDS LOGIC ---
 function checkDailyReward() {
     const today = new Date().toDateString(); 
     if (lastLoginDate !== today) {
@@ -129,6 +139,7 @@ function claimDailyReward() {
     if(!isMuted) sounds.win.play().catch(() => {}); updateUI();
 }
 
+// --- ACHIEVEMENT LOGIC ---
 function checkAchievements() {
     let newlyUnlocked = false;
     achievementData.forEach(ach => {
@@ -142,6 +153,7 @@ function checkAchievements() {
     if (newlyUnlocked) updateUI();
 }
 
+// --- MISSION LOGIC ---
 function updateMissionProgress(actionType, amount = 1) {
     if (currentMission.id === actionType) {
         currentMission.progress += amount;
@@ -157,6 +169,7 @@ function updateMissionProgress(actionType, amount = 1) {
     }
 }
 
+// --- AD SIMULATOR LOGIC ---
 let adInterval;
 function showAd() {
     document.getElementById('ad-modal').style.display = 'flex'; document.getElementById('ad-close-btn').style.display = 'none';
@@ -178,6 +191,7 @@ function closeAd() {
     if(!isMuted) sounds.pulse.play().catch(() => {}); alert("Ad complete! You earned 5 💎 Tokens."); updateUI();
 }
 
+// --- MYSTERY BOX (GACHA) LOGIC ---
 function openMysteryBox() {
     const cost = 2000;
     if (coins < cost) { alert("Not enough coins! Keep battling."); return; }
@@ -224,6 +238,7 @@ function openMysteryBox() {
     }, 1500);
 }
 
+// --- BATTLE BUFF SYSTEM ---
 let nextRollBuff = null; 
 const buffTypes = [
     { id: 'shield', icon: '🛡️', color: '#3b82f6', text: 'SHIELD' },
@@ -235,7 +250,6 @@ function spawnBattleBuff() {
     const existing = document.querySelector('.battle-buff'); 
     if (existing) existing.remove();
     
-    // 15% chance to spawn a buff
     if (Math.random() * 100 > 15) return;
     
     const arena = document.querySelector('.battle-arena'); 
@@ -247,8 +261,7 @@ function spawnBattleBuff() {
     buffEl.className = 'battle-buff'; 
     buffEl.textContent = buff.icon;
     
-    // NEW POSITIONING: Spawns exactly in the middle, above the "VS" sign!
-    let offset = Math.floor(Math.random() * 40) - 20; // Slight random wiggle left/right
+    let offset = Math.floor(Math.random() * 40) - 20; 
     buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
     buffEl.style.top = '-15px'; 
 
@@ -261,7 +274,7 @@ function spawnBattleBuff() {
     arena.appendChild(buffEl);
 }
 
-
+// --- CORE FUNCTIONS ---
 function startGame() {
     showTab('arena');
     if (!isMuted) { sounds.pulse.play().catch(() => {}); sounds.bgm.play().catch(() => {}); }
@@ -361,6 +374,7 @@ function checkBattleStatus() {
     }
 }
 
+// --- SHOP LOGIC ---
 function buySkin(skinId, cost) {
     if (ownedSkins.includes(skinId)) { activeSkin = skinId; } 
     else if (coins >= cost) { coins -= cost; ownedSkins.push(skinId); activeSkin = skinId; }
@@ -381,6 +395,7 @@ function handlePrestige() {
     } else { alert("You must reach Level 50 to Prestige!"); }
 }
 
+// --- UPDATE UI LOGIC ---
 function updateUI() {
     document.getElementById("coins-game").textContent = Math.floor(coins).toLocaleString();
     document.getElementById("tokens-game").textContent = tokens;
@@ -485,4 +500,8 @@ function initParticles() {
     }
 }
 
-document.getElementById("volume-slider").value = 0.5; adjustVolume(); updateUI(); initParticles();
+// --- INITIALIZE GAME ---
+document.getElementById("volume-slider").value = 0.5; 
+adjustVolume(); 
+updateUI(); 
+initParticles();
