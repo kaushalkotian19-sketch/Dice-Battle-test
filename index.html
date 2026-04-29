@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="particles-container"></div>
+
     <div id="game-container">
         
         <section id="tab-home" class="tab-content active">
@@ -120,10 +122,15 @@
         <section id="tab-hall" class="tab-content">
             <div class="main-scroll-area">
                 <h2 class="section-title">🏆 HALL OF FAME</h2>
+                
                 <div class="stats-container glass">
-                    <div class="stat-row"><span>BEST RUN</span> <span id="best-run" class="gold-text">1</span></div>
+                    <div style="display:flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">
+                        <span>TOTAL WINS</span> <span id="total-wins" class="gold-text">0</span>
+                    </div>
                     <hr>
-                    <div class="stat-row"><span>TOTAL WINS</span> <span id="total-wins" class="gold-text">0</span></div>
+                    <h3 style="text-align: center; margin-top: 15px; letter-spacing: 1px;">TOP 5 RUNS</h3>
+                    <div id="top-runs-container">
+                        </div>
                 </div>
 
                 <h3 style="margin-top: 25px; text-align: center; letter-spacing: 1px;">🎖️ BADGES</h3>
