@@ -10,6 +10,7 @@ let level = Number(localStorage.getItem("level")) || 1;
 let totalWins = Number(localStorage.getItem("totalWins")) || 0;
 let highestLevel = Number(localStorage.getItem("highestLevel")) || 1;
 let prestigeCount = Number(localStorage.getItem("prestigeCount")) || 0;
+let pastRuns = JSON.parse(localStorage.getItem("pastRuns")) || [];
 
 let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
 let upgrades = { hp: savedUpgrades.hp || 100, luck: savedUpgrades.luck || 0, mult: savedUpgrades.mult || 1 };
@@ -30,7 +31,7 @@ const skinData = {
     magma: { id: 'magma', name: 'MAGMA & ICE', price: 50000, prefixP1: 'magma-', prefixP2: 'cold-' },
     silver: { id: 'silver', name: 'ROYAL SILVER', price: 100000, prefixP1: 'silver-', prefixP2: 'silver-' },
     gold: { id: 'gold', name: 'ROYAL GOLD', price: 500000, prefixP1: 'gold-', prefixP2: 'gold-' },
-    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'cosmos-', prefixP2: 'cosmos-' }
+    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'mythic-', prefixP2: 'mythic-' }
 };
 
 let lastLoginDate = localStorage.getItem("lastLoginDate") || "";
@@ -279,49 +280,60 @@ function useSkill(type) {
 }
 
 function rollDice() {
+    const rollBtn = document.querySelector('.roll-btn'); rollBtn.disabled = true; rollBtn.style.opacity = '0.5';
     const existingBuff = document.querySelector('.battle-buff'); if (existingBuff) existingBuff.remove();
     updateMissionProgress('play');
 
+    if (cooldowns.heal > 0) cooldowns.heal--; if (cooldowns.double > 0) cooldowns.double--;
+    let currentSkin = skinData[activeSkin] || skinData['classic'];
+    
+    if(!isMuted) { sounds.roll.currentTime = 0; sounds.roll.play().catch(() => {}); }
     const diceElements = document.querySelectorAll('.dice-img');
     diceElements.forEach(d => d.classList.add('shake'));
-    setTimeout(() => diceElements.forEach(d => d.classList.remove('shake')), 400);
 
-    if (cooldowns.heal > 0) cooldowns.heal--; if (cooldowns.double > 0) cooldowns.double--;
+    let rollCycles = 0;
+    const cycleInterval = setInterval(() => {
+        let tempD1 = Math.floor(Math.random() * 6) + 1; let tempD2 = Math.floor(Math.random() * 6) + 1;
+        document.getElementById("p1-img").src = `assets/${currentSkin.prefixP1}red-${tempD1}.png`; 
+        document.getElementById("p2-img").src = `assets/${currentSkin.prefixP2}green-${tempD2}.png`;
+        rollCycles++;
+    }, 50);
 
     const d1 = Math.floor(Math.random() * 6) + 1; const d2 = Math.floor(Math.random() * 6) + 1;
 
-    let currentSkin = skinData[activeSkin] || skinData['classic'];
-    document.getElementById("p1-img").src = `assets/${currentSkin.prefixP1}red-${d1}.png`; 
-    document.getElementById("p2-img").src = `assets/${currentSkin.prefixP2}green-${d2}.png`;
-    
-    if(!isMuted) { sounds.roll.currentTime = 0; sounds.roll.play().catch(() => {}); }
+    setTimeout(() => {
+        clearInterval(cycleInterval); diceElements.forEach(d => d.classList.remove('shake'));
+        document.getElementById("p1-img").src = `assets/${currentSkin.prefixP1}red-${d1}.png`; 
+        document.getElementById("p2-img").src = `assets/${currentSkin.prefixP2}green-${d2}.png`;
 
-    if (d1 > d2) {
-        let dmg = d1 * 5; let isCrit = false;
-        if (Math.random() * 100 < (5 + upgrades.luck)) { isCrit = true; dmg *= 2; updateMissionProgress('crit'); stats.critsLanded++; }
-        let usedDoubleSkill = false;
-        if (buffs.doubleDamage) { dmg *= 2; buffs.doubleDamage = false; usedDoubleSkill = true; }
-        if (nextRollBuff === 'strike') { dmg *= 2; }
-        
-        p2HP -= dmg;
-        let earnedCoins = (10 * upgrades.mult);
-        if (nextRollBuff === 'magnet') { earnedCoins *= 2; }
-        coins += earnedCoins;
+        if (d1 > d2) {
+            let dmg = d1 * 5; let isCrit = false;
+            if (Math.random() * 100 < (5 + upgrades.luck)) { isCrit = true; dmg *= 2; updateMissionProgress('crit'); stats.critsLanded++; }
+            let usedDoubleSkill = false;
+            if (buffs.doubleDamage) { dmg *= 2; buffs.doubleDamage = false; usedDoubleSkill = true; }
+            if (nextRollBuff === 'strike') { dmg *= 2; }
+            
+            p2HP -= dmg;
+            let earnedCoins = (10 * upgrades.mult); if (nextRollBuff === 'magnet') { earnedCoins *= 2; }
+            coins += earnedCoins;
 
-        if (isCrit) {
-            document.body.classList.add('violent-shake'); setTimeout(() => document.body.classList.remove('violent-shake'), 500);
-            createDamagePop(`CRIT! -${dmg}`, 'p2-img', '#ef4444', true); if(!isMuted) sounds.pulse.play().catch(() => {}); 
-        } else if (usedDoubleSkill) { createDamagePop(`-${dmg}`, 'p2-img', '#fbbf24', false); 
-        } else { createDamagePop(dmg, 'p2-img'); }
-    } else if (d2 > d1) {
-        let dmg = d2 * 5;
-        if (nextRollBuff === 'shield') { dmg = 0; createDamagePop("BLOCKED!", 'p1-img', '#3b82f6', true); } 
-        else {
-            p1HP -= dmg; createDamagePop(dmg, 'p1-img'); 
-            if(p1HP < 30 && p1HP > 0 && !isMuted) { sounds.heartbeat.currentTime = 0; sounds.heartbeat.play().catch(() => {}); }
+            if (isCrit) {
+                document.body.classList.add('violent-shake'); setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+                createDamagePop(`CRIT! -${dmg}`, 'p2-img', '#ef4444', true); if(!isMuted) sounds.pulse.play().catch(() => {}); 
+            } else if (usedDoubleSkill) { createDamagePop(`-${dmg}`, 'p2-img', '#fbbf24', false); 
+            } else { createDamagePop(dmg, 'p2-img'); }
+        } else if (d2 > d1) {
+            let dmg = d2 * 5;
+            if (nextRollBuff === 'shield') { dmg = 0; createDamagePop("BLOCKED!", 'p1-img', '#3b82f6', true); } 
+            else {
+                p1HP -= dmg; createDamagePop(dmg, 'p1-img'); 
+                if(p1HP < 30 && p1HP > 0 && !isMuted) { sounds.heartbeat.currentTime = 0; sounds.heartbeat.play().catch(() => {}); }
+            }
         }
-    }
-    nextRollBuff = null; checkBattleStatus(); checkAchievements(); updateUI(); spawnBattleBuff();
+        
+        nextRollBuff = null; checkBattleStatus(); checkAchievements(); updateUI(); spawnBattleBuff();
+        rollBtn.disabled = false; rollBtn.style.opacity = '1';
+    }, 400); 
 }
 
 function checkBattleStatus() {
@@ -352,8 +364,9 @@ function buyPermanent(type) {
 
 function handlePrestige() {
     if (level >= 50) {
-        prestigeCount++; level = 1; coins = 0; p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
-        updateUI(); alert("PRESTIGE ACTIVATED! You have restarted at Level 1 with a new Prestige Star.");
+        pastRuns.push({ level: highestLevel, prestige: prestigeCount });
+        prestigeCount++; level = 1; highestLevel = 1; coins = 0; p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
+        updateUI(); alert("PRESTIGE ACTIVATED! Your run has been saved to the Hall of Fame. Restarting at Level 1...");
     } else { alert("You must reach Level 50 to Prestige!"); }
 }
 
@@ -409,6 +422,25 @@ function updateUI() {
         });
     }
 
+    const topRunsContainer = document.getElementById('top-runs-container');
+    if (topRunsContainer) {
+        topRunsContainer.innerHTML = ''; 
+        let allRuns = [...pastRuns, { level: highestLevel, prestige: prestigeCount, isCurrent: true }];
+        allRuns.sort((a, b) => { if (b.prestige !== a.prestige) return b.prestige - a.prestige; return b.level - a.level; });
+        let top5 = allRuns.slice(0, 5);
+        top5.forEach((run, index) => {
+            let rankClass = 'rank-novice'; let rankName = 'NOVICE';
+            if (run.prestige > 0 || run.level >= 50) { rankClass = 'rank-legend'; rankName = 'LEGEND'; }
+            else if (run.level >= 30) { rankClass = 'rank-titan'; rankName = 'TITAN'; }
+            else if (run.level >= 15) { rankClass = 'rank-slayer'; rankName = 'SLAYER'; }
+            let prestigeText = run.prestige > 0 ? ` (${run.prestige}⭐)` : '';
+            let currentTag = run.isCurrent ? `<span class="active-run-tag">ACTIVE</span>` : '';
+            let div = document.createElement('div'); div.className = 'run-row';
+            div.innerHTML = `<div class="run-rank ${rankClass}">${index + 1}. ${rankName}${currentTag}</div><div class="run-stats">LVL ${run.level}${prestigeText}</div>`;
+            topRunsContainer.appendChild(div);
+        });
+    }
+
     const achContainer = document.getElementById('achievements-container');
     if (achContainer) {
         achContainer.innerHTML = ''; 
@@ -420,7 +452,7 @@ function updateUI() {
         });
     }
 
-    document.getElementById("best-run").textContent = highestLevel; document.getElementById("total-wins").textContent = totalWins; document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount); document.getElementById("mute-btn").textContent = isMuted ? "🔇 Muted" : "🔊 Sound On";
+    document.getElementById("total-wins").textContent = totalWins; document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount); document.getElementById("mute-btn").textContent = isMuted ? "🔇 Muted" : "🔊 Sound On";
     saveData();
 }
 
@@ -428,7 +460,18 @@ function toggleMute() { isMuted = !isMuted; localStorage.setItem("gameMuted", is
 function adjustVolume() { const vol = document.getElementById("volume-slider").value; for (let s in sounds) sounds[s].volume = (s === 'bgm') ? vol * 0.4 : vol; }
 
 function saveData() {
-    localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission));
+    localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission)); localStorage.setItem("pastRuns", JSON.stringify(pastRuns));
 }
 
-document.getElementById("volume-slider").value = 0.5; adjustVolume(); updateUI();
+function initParticles() {
+    const container = document.getElementById('particles-container'); if (!container) return;
+    container.innerHTML = ''; 
+    for (let i = 0; i < 35; i++) {
+        let p = document.createElement('div'); p.className = 'particle';
+        p.style.left = `${Math.random() * 100}vw`; p.style.top = `${Math.random() * 100}vh`;
+        p.style.animationDelay = `${Math.random() * 5}s`; p.style.animationDuration = `${Math.random() * 4 + 3}s`; 
+        container.appendChild(p);
+    }
+}
+
+document.getElementById("volume-slider").value = 0.5; adjustVolume(); updateUI(); initParticles();
