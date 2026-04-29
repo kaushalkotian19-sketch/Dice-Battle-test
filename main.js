@@ -232,15 +232,25 @@ const buffTypes = [
 ];
 
 function spawnBattleBuff() {
-    const existing = document.querySelector('.battle-buff'); if (existing) existing.remove();
+    const existing = document.querySelector('.battle-buff'); 
+    if (existing) existing.remove();
+    
+    // 15% chance to spawn a buff
     if (Math.random() * 100 > 15) return;
-    const arena = document.querySelector('.battle-arena'); if (!arena) return;
+    
+    const arena = document.querySelector('.battle-arena'); 
+    if (!arena) return;
     arena.style.position = 'relative';
 
     const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
     const buffEl = document.createElement('div');
-    buffEl.className = 'battle-buff'; buffEl.textContent = buff.icon;
-    buffEl.style.left = `${Math.floor(Math.random() * 40) + 30}%`; buffEl.style.top = '10%'; 
+    buffEl.className = 'battle-buff'; 
+    buffEl.textContent = buff.icon;
+    
+    // NEW POSITIONING: Spawns exactly in the middle, above the "VS" sign!
+    let offset = Math.floor(Math.random() * 40) - 20; // Slight random wiggle left/right
+    buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
+    buffEl.style.top = '-15px'; 
 
     buffEl.onclick = () => {
         nextRollBuff = buff.id; 
@@ -250,6 +260,7 @@ function spawnBattleBuff() {
     };
     arena.appendChild(buffEl);
 }
+
 
 function startGame() {
     showTab('arena');
