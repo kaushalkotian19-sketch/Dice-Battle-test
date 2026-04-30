@@ -421,6 +421,20 @@ function checkBattleStatus() {
 }
 
 // --- SHOP LOGIC ---
+function simulatePurchase(tokenAmount, priceStr) {
+    const confirmBuy = confirm(`[SIMULATED PURCHASE]\n\nDo you want to buy ${tokenAmount} 💎 for ${priceStr}?\n(No real money will be charged)`);
+    if (confirmBuy) {
+        setTimeout(() => {
+            tokens += tokenAmount;
+            if(!isMuted) sounds.pulse.play().catch(() => {});
+            document.body.classList.add('violent-shake'); 
+            setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+            alert(`🎉 PAYMENT SUCCESSFUL!\n\nThank you for supporting the game! You received ${tokenAmount} 💎.`);
+            updateUI();
+        }, 800);
+    }
+}
+
 function exchangeCurrency(diamondCost, coinReward) {
     if (tokens >= diamondCost) {
         tokens -= diamondCost;
@@ -582,6 +596,14 @@ function updateUI() {
             `;
             achContainer.appendChild(div);
         });
+    }
+
+    const bestScoreNum = document.getElementById("best-score-num");
+    const bestScoreIcon = document.getElementById("best-score-icon");
+    if (bestScoreNum && bestScoreIcon) {
+        bestScoreNum.textContent = highestLevel;
+        let currentSkinForPill = skinData[activeSkin] || skinData['classic'];
+        bestScoreIcon.src = `assets/${currentSkinForPill.prefixP1}red-6.png`;
     }
 
     document.getElementById("total-wins").textContent = totalWins; document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount); document.getElementById("mute-btn").textContent = isMuted ? "🔇 Muted" : "🔊 Sound On";
