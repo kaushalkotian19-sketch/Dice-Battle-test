@@ -456,6 +456,17 @@ function buySkin(skinId, cost) {
         activeSkin = skinId; 
     }
     checkAchievements();
+    
+    // Instantly update Arena Dice to resting state
+    let currentSkin = skinData[activeSkin] || skinData['classic'];
+    const p1Img = document.getElementById("p1-img");
+    const p2Img = document.getElementById("p2-img");
+    if (p1Img) p1Img.src = `assets/${currentSkin.prefixP1}red-1.png`;
+    if (p2Img) p2Img.src = `assets/${currentSkin.prefixP2}green-1.png`;
+    
+    // Preload the rolling animation images
+    preloadSkinImages(activeSkin);
+    
     updateUI();
 }
 
@@ -617,6 +628,18 @@ function saveData() {
     localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission)); localStorage.setItem("pastRuns", JSON.stringify(pastRuns)); localStorage.setItem("dailyAdsWatched", dailyAdsWatched); localStorage.setItem("lastAdDate", lastAdDate);
 }
 
+// --- IMAGE PRELOADER ---
+function preloadSkinImages(skinId) {
+    let skin = skinData[skinId];
+    if (!skin) return;
+    for (let i = 1; i <= 6; i++) {
+        const imgP1 = new Image();
+        imgP1.src = `assets/${skin.prefixP1}red-${i}.png`;
+        const imgP2 = new Image();
+        imgP2.src = `assets/${skin.prefixP2}green-${i}.png`;
+    }
+}
+
 function initParticles() {
     const container = document.getElementById('particles-container'); if (!container) return;
     container.innerHTML = ''; 
@@ -631,5 +654,6 @@ function initParticles() {
 // --- INITIALIZE GAME ---
 document.getElementById("volume-slider").value = 0.5; 
 adjustVolume(); 
+preloadSkinImages(activeSkin); // Preload current skin immediately!
 updateUI(); 
 initParticles();
