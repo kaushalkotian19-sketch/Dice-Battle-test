@@ -62,6 +62,12 @@
                         </button>
                     </div>
                     
+                    <div class="high-score-pill glass">
+                        <img src="assets/red-6.png" id="best-score-icon" class="best-icon" onerror="this.src='assets/red-6.png'">
+                        <div class="best-text">ALL-TIME BEST</div>
+                        <div class="best-score-value">LVL <span id="best-score-num">1</span></div>
+                    </div>
+                    
                     <button class="roll-btn" onclick="rollDice()">ROLL DICE</button>
                 </div>
             </div>
@@ -69,6 +75,30 @@
 
         <section id="tab-vault" class="tab-content">
             <div class="main-scroll-area">
+
+                <div class="shop-section glass" style="border-color: var(--gold); background: rgba(0,0,0,0.6);">
+                    <h3 style="color: var(--gold); text-align: center; font-size: 1.2rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">👑 VIP DIAMOND SHOP</h3>
+                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 15px;">Support the developer & boost your progress!</p>
+                    
+                    <div class="premium-store-grid">
+                        <div class="premium-card">
+                            <div class="premium-icon">💎</div>
+                            <div class="premium-title">50 Tokens</div>
+                            <button class="premium-buy-btn" onclick="simulatePurchase(50, '₹89.00')">₹89.00</button>
+                        </div>
+                        <div class="premium-card best-value">
+                            <div class="premium-ribbon">POPULAR</div>
+                            <div class="premium-icon">💎💎</div>
+                            <div class="premium-title">500 Tokens</div>
+                            <button class="premium-buy-btn" onclick="simulatePurchase(500, '₹449.00')">₹449.00</button>
+                        </div>
+                        <div class="premium-card" style="grid-column: span 2;">
+                            <div class="premium-icon" style="font-size: 3.5rem;">👑💎</div>
+                            <div class="premium-title">1500 Tokens</div>
+                            <button class="premium-buy-btn" onclick="simulatePurchase(1500, '₹899.00')">₹899.00</button>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="shop-section glass" style="border-color: #fbbf24;">
                     <h3 style="color: #fbbf24;">🎁 MYSTERY BOX</h3>
