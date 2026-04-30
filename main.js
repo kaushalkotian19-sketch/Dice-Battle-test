@@ -34,13 +34,17 @@ const skinData = {
     magma: { id: 'magma', name: 'MAGMA & ICE', price: 50000, prefixP1: 'magma-', prefixP2: 'cold-' },
     silver: { id: 'silver', name: 'ROYAL SILVER', price: 100000, prefixP1: 'silver-', prefixP2: 'silver-' },
     gold: { id: 'gold', name: 'ROYAL GOLD', price: 500000, prefixP1: 'gold-', prefixP2: 'gold-' },
-    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'cosmos-', prefixP2: 'cosmos-' } // Setup for your 'cosmos-' files!
+    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'cosmos-', prefixP2: 'cosmos-' }
 };
 
-// --- DAILY REWARD STATE ---
+// --- DAILY REWARD & AD STATE ---
 let lastLoginDate = localStorage.getItem("lastLoginDate") || "";
 let loginStreak = Number(localStorage.getItem("loginStreak")) || 0;
 let pendingReward = null;
+
+let dailyAdsWatched = Number(localStorage.getItem("dailyAdsWatched")) || 0;
+let lastAdDate = localStorage.getItem("lastAdDate") || "";
+const MAX_DAILY_ADS = 3;
 
 const dailyRewards = [
     { type: 'coins', amount: 100, text: "100 💰" }, { type: 'coins', amount: 250, text: "250 💰" },
@@ -50,14 +54,18 @@ const dailyRewards = [
 ];
 
 // --- ACHIEVEMENT TRACKING ---
-let stats = JSON.parse(localStorage.getItem("stats")) || { bossesDefeated: 0, critsLanded: 0 };
-let achievements = JSON.parse(localStorage.getItem("achievements")) || { firstBlood: false, giantSlayer: false, highRoller: false, maxLevel: false };
+let stats = JSON.parse(localStorage.getItem("stats")) || { bossesDefeated: 0, critsLanded: 0, missionsCompleted: 0 };
+if (stats.missionsCompleted === undefined) stats.missionsCompleted = 0;
+
+let achievements = JSON.parse(localStorage.getItem("achievements")) || {};
 
 const achievementData = [
-    { id: 'firstBlood', icon: '🩸', title: 'First Blood', desc: 'Win your first battle.', max: 1, getProgress: () => totalWins },
-    { id: 'giantSlayer', icon: '🐉', title: 'Giant Slayer', desc: 'Defeat 5 Bosses.', max: 5, getProgress: () => stats.bossesDefeated },
-    { id: 'highRoller', icon: '🎲', title: 'High Roller', desc: 'Land 50 Critical Hits.', max: 50, getProgress: () => stats.critsLanded },
-    { id: 'maxLevel', icon: '⭐', title: 'Prestige Ready', desc: 'Reach Level 50.', max: 50, getProgress: () => level }
+    { id: 'firstBlood', icon: '🩸', title: 'First Blood', desc: 'Win your first battle.', max: 1, reward: { type: 'tokens', amt: 2 }, getProgress: () => totalWins },
+    { id: 'giantSlayer', icon: '🐉', title: 'Giant Slayer', desc: 'Defeat 5 Bosses.', max: 5, reward: { type: 'tokens', amt: 5 }, getProgress: () => stats.bossesDefeated },
+    { id: 'highRoller', icon: '🎲', title: 'High Roller', desc: 'Land 50 Critical Hits.', max: 50, reward: { type: 'coins', amt: 2500 }, getProgress: () => stats.critsLanded },
+    { id: 'maxLevel', icon: '⭐', title: 'Prestige Ready', desc: 'Reach Level 50.', max: 50, reward: { type: 'tokens', amt: 10 }, getProgress: () => level },
+    { id: 'bountyHunter', icon: '📜', title: 'Bounty Hunter', desc: 'Complete 10 Active Missions.', max: 10, reward: { type: 'tokens', amt: 10 }, getProgress: () => stats.missionsCompleted },
+    { id: 'mythicalStatus', icon: '🌌', title: 'Mythical Status', desc: 'Equip the Mythic Skin.', max: 1, reward: { type: 'tokens', amt: 250 }, getProgress: () => (activeSkin === 'mythic' ? 1 : 0) }
 ];
 
 // --- MISSION SYSTEM ---
@@ -143,14 +151,28 @@ function claimDailyReward() {
 function checkAchievements() {
     let newlyUnlocked = false;
     achievementData.forEach(ach => {
-        if (!achievements[ach.id]) { 
+        let status = achievements[ach.id];
+        if (status !== 'unlocked' && status !== 'claimed' && status !== true) { 
             if (ach.getProgress() >= ach.max) {
-                achievements[ach.id] = true; newlyUnlocked = true;
-                createDamagePop("🏆 BADGE UNLOCKED!", 'p1-img', '#fbbf24', true);
+                achievements[ach.id] = 'unlocked'; 
+                newlyUnlocked = true;
+                createDamagePop("🏆 REWARD READY!", 'p1-img', '#fbbf24', true);
             }
         }
     });
     if (newlyUnlocked) updateUI();
+}
+
+function claimAchievement(id) {
+    const ach = achievementData.find(a => a.id === id);
+    if (ach && achievements[id] === 'unlocked') {
+        achievements[id] = 'claimed'; 
+        if (ach.reward.type === 'tokens') { tokens += ach.reward.amt; } 
+        else { coins += ach.reward.amt; }
+        if(!isMuted) sounds.win.play().catch(() => {});
+        alert(`🏆 You claimed ${ach.reward.amt} ${ach.reward.type === 'tokens' ? '💎' : '💰'}!`);
+        updateUI();
+    }
 }
 
 // --- MISSION LOGIC ---
@@ -159,11 +181,13 @@ function updateMissionProgress(actionType, amount = 1) {
         currentMission.progress += amount;
         if (currentMission.progress >= currentMission.target) {
             upgrades.mult += 0.5; 
+            stats.missionsCompleted++; 
             if(!isMuted) sounds.win.play().catch(() => {});
             createDamagePop("MISSION COMPLETE!", 'p1-img', '#3b82f6', true);
             alert(`📜 MISSION COMPLETE! Your Coin Multiplier is now ${upgrades.mult}x!`);
             let nextMission = missionPool[Math.floor(Math.random() * missionPool.length)];
             currentMission = { ...nextMission, progress: 0 };
+            checkAchievements(); 
         }
         updateUI();
     }
@@ -171,14 +195,32 @@ function updateMissionProgress(actionType, amount = 1) {
 
 // --- AD SIMULATOR LOGIC ---
 let adInterval;
+
 function showAd() {
-    document.getElementById('ad-modal').style.display = 'flex'; document.getElementById('ad-close-btn').style.display = 'none';
-    let timeLeft = 5; const timerEl = document.getElementById('ad-timer');
-    timerEl.textContent = timeLeft; timerEl.style.color = '#ef4444'; timerEl.style.textShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
+    const today = new Date().toDateString();
+    if (lastAdDate !== today) {
+        dailyAdsWatched = 0;
+        lastAdDate = today;
+    }
+    if (dailyAdsWatched >= MAX_DAILY_ADS) {
+        alert(`You have reached the daily limit of ${MAX_DAILY_ADS} ads! Check back tomorrow.`);
+        return;
+    }
+    document.getElementById('ad-modal').style.display = 'flex'; 
+    document.getElementById('ad-close-btn').style.display = 'none';
+    let timeLeft = 5; 
+    const timerEl = document.getElementById('ad-timer');
+    timerEl.textContent = timeLeft; 
+    timerEl.style.color = '#ef4444'; 
+    timerEl.style.textShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
+    
     adInterval = setInterval(() => {
-        timeLeft--; timerEl.textContent = timeLeft;
+        timeLeft--; 
+        timerEl.textContent = timeLeft;
         if (timeLeft <= 0) {
-            clearInterval(adInterval); timerEl.textContent = "DONE"; timerEl.style.color = '#4ade80'; 
+            clearInterval(adInterval); 
+            timerEl.textContent = "DONE"; 
+            timerEl.style.color = '#4ade80'; 
             timerEl.style.textShadow = '0 0 20px rgba(74, 222, 128, 0.5)';
             document.getElementById('ad-close-btn').style.display = 'block';
             if(!isMuted) sounds.win.play().catch(() => {});
@@ -187,8 +229,12 @@ function showAd() {
 }
 
 function closeAd() {
-    document.getElementById('ad-modal').style.display = 'none'; tokens += 5; 
-    if(!isMuted) sounds.pulse.play().catch(() => {}); alert("Ad complete! You earned 5 💎 Tokens."); updateUI();
+    document.getElementById('ad-modal').style.display = 'none'; 
+    tokens += 5; 
+    dailyAdsWatched++;
+    if(!isMuted) sounds.pulse.play().catch(() => {}); 
+    alert(`Ad complete! You earned 5 💎 Tokens. (${MAX_DAILY_ADS - dailyAdsWatched} ads remaining today)`); 
+    updateUI();
 }
 
 // --- MYSTERY BOX (GACHA) LOGIC ---
@@ -375,9 +421,27 @@ function checkBattleStatus() {
 }
 
 // --- SHOP LOGIC ---
+function exchangeCurrency(diamondCost, coinReward) {
+    if (tokens >= diamondCost) {
+        tokens -= diamondCost;
+        coins += coinReward;
+        if(!isMuted) sounds.win.play().catch(() => {});
+        createDamagePop(`+${coinReward} 💰`, 'p1-img', '#fbbf24', false);
+        updateUI();
+    } else {
+        alert("Not enough Diamonds! Defeat Bosses or watch Ads to earn more.");
+    }
+}
+
 function buySkin(skinId, cost) {
-    if (ownedSkins.includes(skinId)) { activeSkin = skinId; } 
-    else if (coins >= cost) { coins -= cost; ownedSkins.push(skinId); activeSkin = skinId; }
+    if (ownedSkins.includes(skinId)) { 
+        activeSkin = skinId; 
+    } else if (coins >= cost) { 
+        coins -= cost; 
+        ownedSkins.push(skinId); 
+        activeSkin = skinId; 
+    }
+    checkAchievements();
     updateUI();
 }
 
@@ -436,6 +500,17 @@ function updateUI() {
     const mDesc = document.getElementById('mission-desc'); const mProg = document.getElementById('mission-progress'); const mMult = document.getElementById('current-mult-display');
     if (mDesc && mProg && mMult) { mDesc.textContent = currentMission.desc; mProg.textContent = `${currentMission.progress} / ${currentMission.target}`; mMult.textContent = `${upgrades.mult}x MULT`; }
 
+    const adBtn = document.getElementById('watch-ad-btn');
+    if (adBtn) {
+        const today = new Date().toDateString();
+        let currentAdCount = (lastAdDate === today) ? dailyAdsWatched : 0;
+        if (currentAdCount >= MAX_DAILY_ADS) {
+            adBtn.innerHTML = `📺 COME BACK TOMORROW`; adBtn.style.opacity = '0.5';
+        } else {
+            adBtn.innerHTML = `📺 WATCH AD (+5 💎) [${MAX_DAILY_ADS - currentAdCount} LEFT]`; adBtn.style.opacity = '1';
+        }
+    }
+
     const ribbon = document.getElementById('skin-ribbon');
     if (ribbon) {
         ribbon.innerHTML = ''; 
@@ -471,9 +546,40 @@ function updateUI() {
     if (achContainer) {
         achContainer.innerHTML = ''; 
         achievementData.forEach(ach => {
-            let isUnlocked = achievements[ach.id]; let progress = Math.min(ach.getProgress(), ach.max);
-            let div = document.createElement('div'); div.className = `achievement-card ${isUnlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `<div class="ach-icon">${isUnlocked ? ach.icon : '🔒'}</div><div class="ach-info"><p class="ach-title">${ach.title}</p><p class="ach-desc">${ach.desc}</p></div><div class="ach-progress">${isUnlocked ? 'DONE' : progress + '/' + ach.max}</div>`;
+            let status = achievements[ach.id];
+            if (status === true) status = 'claimed'; 
+            
+            let progress = Math.min(ach.getProgress(), ach.max);
+            let isUnlocked = (status === 'unlocked');
+            let isClaimed = (status === 'claimed');
+            
+            let div = document.createElement('div'); 
+            div.className = `achievement-card ${isClaimed ? 'unlocked' : ''}`;
+            
+            let actionHtml = '';
+            if (isClaimed) {
+                actionHtml = `<div class="ach-progress" style="margin-top:10px;">✅ CLAIMED</div>`;
+            } else if (isUnlocked) {
+                let rewardIcon = ach.reward.type === 'tokens' ? '💎' : '💰';
+                actionHtml = `<button class="claim-btn" onclick="claimAchievement('${ach.id}')">CLAIM ${ach.reward.amt} ${rewardIcon}</button>`;
+            } else {
+                let percent = (progress / ach.max) * 100;
+                actionHtml = `
+                    <div class="ach-bar-bg">
+                        <div class="ach-bar-fill" style="width: ${percent}%"></div>
+                        <span class="ach-bar-text">${progress} / ${ach.max}</span>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="ach-icon" style="align-self: flex-start; margin-top: 5px;">${isClaimed || isUnlocked ? ach.icon : '🔒'}</div>
+                <div class="ach-info">
+                    <p class="ach-title">${ach.title}</p>
+                    <p class="ach-desc">${ach.desc}</p>
+                    ${actionHtml}
+                </div>
+            `;
             achContainer.appendChild(div);
         });
     }
@@ -486,7 +592,7 @@ function toggleMute() { isMuted = !isMuted; localStorage.setItem("gameMuted", is
 function adjustVolume() { const vol = document.getElementById("volume-slider").value; for (let s in sounds) sounds[s].volume = (s === 'bgm') ? vol * 0.4 : vol; }
 
 function saveData() {
-    localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission)); localStorage.setItem("pastRuns", JSON.stringify(pastRuns));
+    localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission)); localStorage.setItem("pastRuns", JSON.stringify(pastRuns)); localStorage.setItem("dailyAdsWatched", dailyAdsWatched); localStorage.setItem("lastAdDate", lastAdDate);
 }
 
 function initParticles() {
