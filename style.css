@@ -172,3 +172,27 @@ body.env-dungeon .particle { width: 4px; height: 4px; background: rgba(255,255,2
 @keyframes blowRight { 0% { transform: translateX(-20vw); opacity: 0; } 20% { opacity: 0.7; } 80% { opacity: 0.7; } 100% { transform: translateX(80vw); opacity: 0; } }
 @keyframes pulseVoid { 0% { transform: scale(0.5) translateY(0); opacity: 0; } 50% { transform: scale(1.5) translateY(-30px); opacity: 0.8; } 100% { transform: scale(0.5) translateY(-60px); opacity: 0; } }
 @keyframes driftDust { 0% { transform: translateY(0) translateX(0); opacity: 0; } 50% { opacity: 0.4; transform: translateY(-30px) translateX(20px); } 100% { transform: translateY(-60px) translateX(-20px); opacity: 0; } }
+
+/* --- PLAYER PROFILE & LEADERBOARD TABS --- */
+.glass-input { 
+    width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); 
+    color: white; padding: 15px; border-radius: 8px; font-weight: 900; 
+    margin-bottom: 10px; text-align: center; letter-spacing: 2px; text-transform: uppercase;
+}
+.glass-input:focus { 
+    outline: none; border-color: var(--gold); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); 
+}
+
+.leaderboard-tabs { 
+    display: flex; gap: 10px; margin: 15px 15px 5px 15px; 
+}
+.lb-tab { 
+    flex: 1; padding: 12px; background: rgba(255,255,255,0.05); 
+    border: 1px solid var(--border); color: rgba(255,255,255,0.5); 
+    font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.3s; 
+    font-size: 0.85rem; letter-spacing: 1px;
+}
+.lb-tab.active { 
+    background: rgba(251, 191, 36, 0.15); border-color: var(--gold); 
+    color: var(--gold); text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); 
+}
