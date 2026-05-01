@@ -6,6 +6,7 @@ if ('serviceWorker' in navigator) {
 // --- 🔥 FIREBASE SETUP & INVISIBLE LOGIN ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDBi43PAlEbRssq_VPAS-ZTvC48ASI2yuE",
@@ -20,6 +21,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 let playerUID = null; 
 
 // Sign in invisibly the moment the game opens
@@ -32,8 +34,10 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         playerUID = user.uid;
         console.log("🔥 Cloud Connected! Player Secret ID:", playerUID);
+        syncToCloud(); // Instantly sync their score to the cloud when they load in!
     }
 });
+
 
 // --- GAME STATE ---
 let playerName = localStorage.getItem("playerName") || "WARRIOR";
@@ -170,7 +174,7 @@ function checkDailyReward() {
     }
 }
 
-function claimDailyReward() {
+window.claimDailyReward = function() {
     const today = new Date().toDateString(); let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     if (lastLoginDate !== yesterday.toDateString() && lastLoginDate !== "") loginStreak = 0; 
     loginStreak++; if (loginStreak > 7) loginStreak = 1;
@@ -196,7 +200,7 @@ function checkAchievements() {
     if (newlyUnlocked) updateUI();
 }
 
-function claimAchievement(id) {
+window.claimAchievement = function(id) {
     const ach = achievementData.find(a => a.id === id);
     if (ach && achievements[id] === 'unlocked') {
         achievements[id] = 'claimed'; 
@@ -229,7 +233,7 @@ function updateMissionProgress(actionType, amount = 1) {
 // --- AD SIMULATOR LOGIC ---
 let adInterval;
 
-function showAd() {
+window.showAd = function() {
     const today = new Date().toDateString();
     if (lastAdDate !== today) {
         dailyAdsWatched = 0;
@@ -261,7 +265,7 @@ function showAd() {
     }, 1000); 
 }
 
-function closeAd() {
+window.closeAd = function() {
     document.getElementById('ad-modal').style.display = 'none'; 
     tokens += 5; 
     dailyAdsWatched++;
@@ -271,7 +275,7 @@ function closeAd() {
 }
 
 // --- MYSTERY BOX (GACHA) LOGIC ---
-function openMysteryBox() {
+window.openMysteryBox = function() {
     const cost = 2000;
     if (coins < cost) { alert("Not enough coins! Keep battling."); return; }
     coins -= cost; updateUI();
@@ -353,14 +357,62 @@ function spawnBattleBuff() {
     arena.appendChild(buffEl);
 }
 
-// --- CORE FUNCTIONS ---
-function startGame() {
+// --- 🌍 GLOBAL LEADERBOARD LOGIC ---
+window.syncToCloud = async function() {
+    if (!playerUID) return; // Wait until logged in securely
+    try {
+        await setDoc(doc(db, "leaderboard", playerUID), {
+            name: playerName,
+            level: highestLevel,
+            prestige: prestigeCount,
+            timestamp: new Date()
+        });
+        console.log("☁️ Score synced to Global Leaderboard!");
+    } catch (e) {
+        console.error("Error saving to cloud:", e);
+    }
+}
+
+window.fetchGlobalLeaderboard = async function() {
+    const container = document.getElementById('top-runs-container');
+    try {
+        // Grab top 50, sorting by prestige first, then by level
+        const q = query(collection(db, "leaderboard"), orderBy("prestige", "desc"), orderBy("level", "desc"), limit(50));
+        const querySnapshot = await getDocs(q);
+        
+        container.innerHTML = ''; 
+        let rank = 1;
+        
+        querySnapshot.forEach((doc) => {
+            let data = doc.data();
+            let rankClass = 'rank-novice'; 
+            if (data.prestige > 0 || data.level >= 50) rankClass = 'rank-legend';
+            else if (data.level >= 30) rankClass = 'rank-titan';
+            else if (data.level >= 15) rankClass = 'rank-slayer';
+            
+            let prestigeText = data.prestige > 0 ? ` (${data.prestige}⭐)` : '';
+            let div = document.createElement('div'); div.className = 'run-row';
+            div.innerHTML = `<div class="run-rank ${rankClass}">${rank}. ${data.name}</div><div class="run-stats">LVL ${data.level}${prestigeText}</div>`;
+            container.appendChild(div);
+            rank++;
+        });
+        
+        if(rank === 1) container.innerHTML = '<p style="text-align:center; color:white;">No global scores yet! Be the first!</p>';
+    } catch (e) {
+        console.error("Leaderboard fetch error:", e);
+        container.innerHTML = '<p style="text-align:center; color:#ef4444;">Failed to load leaderboard.</p>';
+    }
+}
+
+
+// --- CORE FUNCTIONS (Attached to Window for Module) ---
+window.startGame = function() {
     showTab('arena');
     if (!isMuted) { sounds.pulse.play().catch(() => {}); sounds.bgm.play().catch(() => {}); }
     setTimeout(checkDailyReward, 500); 
 }
 
-function showTab(tabId) {
+window.showTab = function(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById(`tab-${tabId}`).classList.add('active');
     const nav = document.getElementById('main-nav'); const wallet = document.getElementById('main-wallet');
@@ -375,6 +427,7 @@ window.savePlayerName = function() {
         localStorage.setItem("playerName", playerName);
         if(!isMuted) sounds.win.play().catch(() => {});
         alert(`Name securely saved as: ${playerName}`);
+        syncToCloud(); // <-- Syncs their new name to the cloud!
         updateUI();
     } else {
         alert("Please enter a valid name (1-12 characters).");
@@ -386,8 +439,8 @@ window.switchLeaderboard = function(type) {
     document.getElementById(`tab-${type}`).classList.add('active');
     
     if (type === 'global') {
-        document.getElementById('top-runs-container').innerHTML = '<p style="text-align:center; color:var(--gold); font-weight:bold; margin-top: 20px;">📡 Connecting to Cloud Server...</p>';
-        // fetchGlobalLeaderboard(); <-- We will activate this in the next step!
+        document.getElementById('top-runs-container').innerHTML = '<p style="text-align:center; color:var(--gold); font-weight:bold; margin-top: 20px;">📡 Fetching from Cloud...</p>';
+        fetchGlobalLeaderboard(); 
     } else {
         updateUI(); // Refreshes the local offline top 5
     }
@@ -472,6 +525,7 @@ function checkBattleStatus() {
         totalWins++; level++; if (level > highestLevel) highestLevel = level;
         if (level % 10 === 0) triggerBossFlash();
         p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp; 
+        syncToCloud(); // Quietly syncs high score to cloud when you beat a level
     } else if (p1HP <= 0) {
         if(!isMuted) sounds.lose.play().catch(() => {});
         p1HP = upgrades.hp; p2HP = getEnemyMaxHP(level);
@@ -538,20 +592,22 @@ window.handlePrestige = function() {
     if (level >= 50) {
         pastRuns.push({ level: highestLevel, prestige: prestigeCount });
         prestigeCount++; level = 1; highestLevel = 1; coins = 0; p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
-        updateUI(); alert("PRESTIGE ACTIVATED! Your run has been saved to the Hall of Fame. Restarting at Level 1...");
+        syncToCloud(); // Sync prestige status to the cloud!
+        updateUI(); 
+        alert("PRESTIGE ACTIVATED! Your run has been saved to the Hall of Fame. Restarting at Level 1...");
     } else { alert("You must reach Level 50 to Prestige!"); }
 }
 
-// Ensure globally called functions from HTML are attached to window
-window.startGame = startGame;
-window.showTab = showTab;
-window.claimDailyReward = claimDailyReward;
-window.openMysteryBox = openMysteryBox;
-window.showAd = showAd;
-window.closeAd = closeAd;
-window.claimAchievement = claimAchievement;
-window.toggleMute = toggleMute;
-window.adjustVolume = adjustVolume;
+window.toggleMute = function() { 
+    isMuted = !isMuted; localStorage.setItem("gameMuted", isMuted); 
+    if(isMuted) sounds.bgm.pause(); else if (!document.getElementById('tab-home').classList.contains('active')) sounds.bgm.play().catch(() => {}); 
+    updateUI(); 
+}
+
+window.adjustVolume = function() { 
+    const vol = document.getElementById("volume-slider").value; 
+    for (let s in sounds) sounds[s].volume = (s === 'bgm') ? vol * 0.4 : vol; 
+}
 
 // --- UPDATE UI LOGIC ---
 function updateUI() {
@@ -697,9 +753,6 @@ function updateUI() {
     document.getElementById("total-wins").textContent = totalWins; document.getElementById("prestige-star").textContent = "⭐".repeat(prestigeCount); document.getElementById("mute-btn").textContent = isMuted ? "🔇 Muted" : "🔊 Sound On";
     saveData();
 }
-
-function toggleMute() { isMuted = !isMuted; localStorage.setItem("gameMuted", isMuted); if(isMuted) sounds.bgm.pause(); else if (!document.getElementById('tab-home').classList.contains('active')) sounds.bgm.play().catch(() => {}); updateUI(); }
-function adjustVolume() { const vol = document.getElementById("volume-slider").value; for (let s in sounds) sounds[s].volume = (s === 'bgm') ? vol * 0.4 : vol; }
 
 function saveData() {
     localStorage.setItem("playerName", playerName);
