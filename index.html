@@ -5,231 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dice Battle Elite</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Dice Battle"> 
-    <link rel="apple-touch-icon" href="assets/red-dice.png">
+    <meta name="monetag" content="022b1ec8f1b2bd0d22c1b578138f3775">
+    <script src="https://quge5.com/88/tag.min.js" data-zone="235168" async data-cfasync="false"></script>
 
     <link rel="stylesheet" href="style.css">
-    <meta name="monetag" content="002a2212623c9d4b1cf3c3f4bbd0fbfe">
+    <link rel="manifest" href="manifest.json">
 </head>
-<body>
-    <div id="particles-container"></div>
-
+<body class="env-forest">
     <div id="game-container">
-        
-        <section id="tab-home" class="tab-content active">
-            <div class="home-container">
-                <h1 class="main-title">DICE BATTLE</h1>
-                <div class="login-card glass">
-                    <button class="enter-btn" onclick="startGame()">ENTER ARENA</button>
-                </div>
-                
-                <div class="developer-credit">
-                    DEVELOPED BY <span class="dev-name">KAUSHAL KOTIAN</span>
-                </div>
+        <header class="glass hud">
+            <div id="biome-name" style="font-size: 0.8rem; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; text-align: center; width: 100%;">GREENWOOD FOREST</div>
+            <div class="hud-stats">
+                <span>💰 <span id="coin-count">0</span></span>
+                <span>💎 <span id="token-count">0</span></span>
             </div>
-        </section>
+        </header>
 
-        <section id="tab-arena" class="tab-content">
-            <div class="main-scroll-area">
-                <div class="player-info">
-                    <h2 class="player-tag"><span id="player-name-display">WARRIOR</span> LVL <span id="lvl-num">1</span></h2>
-                    <div id="prestige-star"></div>
-                </div>
-
-                <div class="battle-arena">
-                    <div class="player-box glass">
-                        <div class="hp-wrapper"><div id="p1-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="assets/red-1.png" id="p1-img" class="dice-img"></div>
-                        <p class="label">YOU</p>
-                    </div>
-                    <div class="vs-divider">VS</div>
-                    <div class="player-box glass">
-                        <div class="hp-wrapper"><div id="p2-hp" class="hp-bar"></div></div>
-                        <div class="dice-space"><img src="assets/green-1.png" id="p2-img" class="dice-img"></div>
-                        <p id="enemy-name" class="label">CPU</p>
-                    </div>
-                </div>
-
-                <div class="action-zone">
-                    <div class="skills-grid">
-                        <button id="skill-heal" class="skill-btn" onclick="useSkill('heal')">
-                            💚 HEAL<br><span class="skill-cost">50 💰</span>
-                        </button>
-                        <button id="skill-double" class="skill-btn" onclick="useSkill('double')">
-                            ⚔️ 2X DMG<br><span class="skill-cost">100 💰</span>
-                        </button>
+        <main class="main-scroll-area">
+            
+            <section id="tab-arena" class="tab-content active">
+                <div class="battle-area">
+                    <div class="enemy-container">
+                        <h3 id="enemy-name">Lvl 1 Boss</h3>
+                        <div class="hp-bar-bg"><div id="enemy-hp-fill" class="hp-fill" style="width: 100%;"></div></div>
+                        <img id="enemy-img" src="assets/slime.png" alt="enemy">
+                        <div id="boss-status-ui" style="color: #ef4444; font-weight: bold; font-size: 0.8rem; height: 20px;"></div>
                     </div>
                     
-                    <div class="high-score-pill glass">
-                        <img src="assets/red-6.png" id="best-score-icon" class="best-icon" onerror="this.src='assets/red-6.png'">
-                        <div class="best-text">ALL-TIME BEST</div>
-                        <div class="best-score-value">LVL <span id="best-score-num">1</span></div>
+                    <div class="player-container">
+                        <img id="p1-img" src="assets/dice_classic.png" alt="dice">
+                        <div class="hp-bar-bg"><div id="player-hp-fill" class="hp-fill player" style="width: 100%;"></div></div>
+                        <p>HP: <span id="player-hp-text">100/100</span></p>
                     </div>
-                    
-                    <button class="roll-btn" onclick="rollDice()">ROLL DICE</button>
                 </div>
-            </div>
-        </section>
+                <button id="roll-btn" class="enter-btn" onclick="rollDice()">ROLL DICE</button>
+            </section>
 
-        <section id="tab-vault" class="tab-content">
-            <div class="main-scroll-area">
-
-                <div class="settings-group glass" style="border-color: #38bdf8;">
-                    <h3 style="color: #38bdf8;">👤 PLAYER PROFILE</h3>
-                    <input type="text" id="player-name-input" placeholder="ENTER NAME" maxlength="12" class="glass-input">
-                    <button class="glass-btn" onclick="savePlayerName()" style="margin-bottom: 10px; border-color: #38bdf8; color: #38bdf8;">SAVE NAME</button>
+            <section id="tab-vault" class="tab-content">
+                <div id="prestige-section" class="glass" style="display: none; border-color: #fbbf24; background: rgba(251, 191, 36, 0.1);">
+                    <h2 style="color: #fbbf24; margin-top: 0;">👑 ASCENSION READY</h2>
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.8);">Reset progress for a permanent <span style="color: #fbbf24;">Crown</span> and <span style="color: #fbbf24;">x1.5 Damage</span>!</p>
+                    <button class="enter-btn" onclick="ascendPlayer()" style="width: 100%; background: linear-gradient(180deg, #fbbf24 0%, #b45309 100%); color: white; font-weight: bold;">ASCEND NOW</button>
                 </div>
 
-                <div class="shop-section glass" style="border-color: var(--gold); background: rgba(0,0,0,0.6);">
-                    <h3 style="color: var(--gold); text-align: center; font-size: 1.2rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">👑 VIP DIAMOND SHOP</h3>
-                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 15px;">Support the developer & boost your progress!</p>
-                    
+                <div class="glass">
+                    <h3 style="color: #fbbf24;">👑 VIP DIAMOND SHOP</h3>
                     <div class="premium-store-grid">
                         <div class="premium-card">
                             <div class="premium-icon">💎</div>
-                            <div class="premium-title">50 Tokens</div>
-                            <button class="premium-buy-btn" onclick="simulatePurchase(50, '₹89.00')">₹89.00</button>
+                            <div class="premium-title">15 Tokens</div>
+                            <button class="premium-buy-btn" onclick="simulatePurchase(15, '₹89.00')">₹89.00</button>
                         </div>
                         <div class="premium-card best-value">
                             <div class="premium-ribbon">POPULAR</div>
                             <div class="premium-icon">💎💎</div>
-                            <div class="premium-title">500 Tokens</div>
-                            <button class="premium-buy-btn" onclick="simulatePurchase(500, '₹449.00')">₹449.00</button>
+                            <div class="premium-title">125 Tokens</div>
+                            <button class="premium-buy-btn" onclick="simulatePurchase(125, '₹449.00')">₹449.00</button>
                         </div>
                         <div class="premium-card" style="grid-column: span 2;">
                             <div class="premium-icon" style="font-size: 3.5rem;">👑💎</div>
-                            <div class="premium-title">1500 Tokens</div>
-                            <button class="premium-buy-btn" onclick="simulatePurchase(1500, '₹899.00')">₹899.00</button>
+                            <div class="premium-title">375 Tokens</div>
+                            <button class="premium-buy-btn" onclick="simulatePurchase(375, '₹899.00')">₹899.00</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="shop-section glass" style="border-color: #fbbf24;">
+
+                <div class="glass">
                     <h3 style="color: #fbbf24;">🎁 MYSTERY BOX</h3>
-                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 10px;">Win Coins, Tokens, or Rare Skins!</p>
-                    <button id="gacha-btn" class="up-btn" onclick="openMysteryBox()" style="background: rgba(251, 191, 36, 0.2); border-color: #fbbf24; color: white; padding: 15px; font-size: 1.1rem; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);">
-                        OPEN CHEST (2,000 💰)
-                    </button>
+                    <p style="font-size: 0.8rem; margin-bottom: 10px;">Win Coins, Tokens, or Epic Elemental Skins!</p>
+                    <button id="gacha-btn" class="enter-btn" onclick="openMysteryBox()">OPEN CHEST (2,000 💰) [3 LEFT]</button>
                 </div>
+            </section>
 
-                <div class="shop-section glass" style="border-color: #a855f7;">
-                    <h3 style="color: #a855f7;">💎 FREE DIAMONDS</h3>
-                    <button id="watch-ad-btn" class="up-btn" onclick="showAd()" style="background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: white; margin-top: 10px;">
-                        📺 WATCH AD (+5 💎)
-                    </button>
-                </div>
-
-                <div class="shop-section glass" style="border-color: #38bdf8;">
-                    <h3 style="color: #38bdf8;">🏦 COIN EXCHANGE</h3>
-                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 10px;">Trade Diamonds for Coins!</p>
-                    <div class="upgrade-grid">
-                        <button class="up-btn" onclick="exchangeCurrency(10, 1000)">1k 💰 (10 💎)</button>
-                        <button class="up-btn" onclick="exchangeCurrency(50, 7500)">7.5k 💰 (50 💎)</button>
-                    </div>
-                    <button class="up-btn" onclick="exchangeCurrency(100, 20000)" style="margin-top: 10px; background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: white; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);">
-                        👑 20k 💰 BEST VALUE (100 💎)
-                    </button>
-                </div>
-
-                <div class="shop-section glass" style="border-color: #3b82f6;">
-                    <h3 style="color: #3b82f6; display: flex; justify-content: space-between;">
-                        <span>📜 ACTIVE MISSION</span>
-                        <span id="current-mult-display" style="color: var(--gold);">1.0x MULT</span>
-                    </h3>
-                    <div style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 10px;">
-                        <p id="mission-desc" style="font-weight: 900; font-size: 1.1rem; margin: 0; color: white;">Loading...</p>
-                        <p id="mission-progress" style="color: var(--gold); font-size: 1.5rem; font-weight: bold; margin: 10px 0;">0 / 0</p>
-                        <p style="font-size: 0.8rem; color: #4ade80; margin: 0;">REWARD: +0.5x Permanent Coin Multiplier</p>
-                    </div>
-                </div>
-
-                <div class="shop-section glass">
-                    <h3>✨ PERMANENT UPGRADES</h3>
-                    <div class="upgrade-grid">
-                        <button class="up-btn" onclick="buyPermanent('hp')">+20 HP (10 💎)</button>
-                        <button class="up-btn" onclick="buyPermanent('luck')">+5% LUCK (25 💎)</button>
-                    </div>
-                </div>
-
-                <div class="shop-section glass">
-                    <h3>🎨 DICE SKINS</h3>
-                    <div id="skin-ribbon" class="skin-ribbon-container"></div>
-                </div>
-
-                <div class="settings-group glass">
-                    <h3>🔊 SYSTEM VOLUME</h3>
-                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume()">
-                    <button id="mute-btn" class="glass-btn" style="margin-top: 10px;" onclick="toggleMute()">🔊 Sound On</button>
-                    <button class="prestige-btn" style="margin-top: 10px;" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="tab-hall" class="tab-content">
-            <div class="main-scroll-area">
-                <h2 class="section-title">🏆 HALL OF FAME</h2>
-                
-                <div class="leaderboard-tabs">
-                    <button id="tab-local" class="lb-tab active" onclick="switchLeaderboard('local')">LOCAL BEST</button>
-                    <button id="tab-global" class="lb-tab" onclick="switchLeaderboard('global')">GLOBAL TOP 50</button>
-                </div>
-                
+            <section id="tab-hall" class="tab-content">
                 <div class="stats-container glass">
                     <div style="display:flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">
-                        <span>TOTAL WINS</span> <span id="total-wins" class="gold-text">0</span>
+                        <span>GLOBAL TOP 50</span>
                     </div>
                     <hr>
-                    <div id="top-runs-container">
-                        </div>
+                    <div id="leaderboard-list">Loading...</div>
                 </div>
+                <button class="enter-btn" onclick="shareScore()" style="width: 100%; margin-top: 15px; background: linear-gradient(180deg, #10b981 0%, #047857 100%); color: white;">📢 CHALLENGE FRIENDS</button>
+            </section>
+        </main>
 
-                <h3 style="margin-top: 25px; text-align: center; letter-spacing: 1px;">🎖️ BADGES & REWARDS</h3>
-                <div id="achievements-container" class="achievements-grid"></div>
-            </div>
-        </section>
-
-        <nav class="nav-bar glass" id="main-nav" style="display:none;">
+        <nav class="nav-bar glass">
             <button onclick="showTab('arena')">⚔️ Arena</button>
             <button onclick="showTab('vault')">✨ Vault</button>
             <button onclick="showTab('hall')">🏆 Hall</button>
         </nav>
-
-        <div class="wallet-bar" id="main-wallet" style="display:none;">
-            <span>💰 <span id="coins-game">0</span></span>
-            <span>💎 <span id="tokens-game">0</span></span>
-        </div>
-
-        <div id="daily-reward-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content glass">
-                <h2>📅 DAILY REWARD</h2>
-                <p style="font-weight: bold; color: rgba(255,255,255,0.7);">Day <span id="streak-day">1</span></p>
-                <div class="reward-box"><span id="reward-amount">+100 💰</span></div>
-                <button class="enter-btn" onclick="claimDailyReward()" style="width: 100%; margin-top: 10px;">CLAIM</button>
-            </div>
-        </div>
-
-        <div id="gacha-modal" class="modal-overlay" style="display: none; z-index: 2500;">
-            <div class="modal-content glass" style="border-color: #fbbf24; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                <h2 style="color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">🎁 CHEST OPENED!</h2>
-                <div class="reward-box" id="gacha-reward-box" style="font-size: 1.3rem; line-height: 1.5;"></div>
-                <button class="enter-btn" onclick="document.getElementById('gacha-modal').style.display='none'" style="width: 100%; margin-top: 10px;">AWESOME!</button>
-            </div>
-        </div>
-
-        <div id="ad-modal" class="modal-overlay" style="display: none; z-index: 3000; background: #050505;">
-            <div style="text-align: center; width: 100%;">
-                <h2 style="color: white; letter-spacing: 2px;">SIMULATED VIDEO AD</h2>
-                <p style="color: rgba(255,255,255,0.5);">Please wait to claim your reward...</p>
-                <div id="ad-timer" style="font-size: 5rem; font-weight: 900; color: #ef4444; margin: 40px 0; text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);">5</div>
-                <button id="ad-close-btn" class="glass-btn" style="display: none; width: 80%; max-width: 300px; margin: 0 auto; border-color: var(--gold); color: var(--gold); font-size: 1.2rem; padding: 15px;" onclick="closeAd()">CLAIM REWARD 💎</button>
-            </div>
-        </div>
-
     </div>
-    
-    <script type="module" src="main.js"></script>
+
+    <div id="login-streak-modal" class="modal-overlay" style="display: none; z-index: 3000;">
+        <div class="modal-content glass" style="border-color: var(--gold); max-width: 350px;">
+            <h2 style="color: var(--gold); margin: 0 0 5px 0;">📅 DAILY STREAK</h2>
+            <p style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 15px;">Login every day to claim the Grand Prize!</p>
+            <div class="streak-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div class="streak-day" id="day-1">1<br>💰</div>
+                <div class="streak-day" id="day-2">2<br>💎</div>
+                <div class="streak-day" id="day-3">3<br>💰</div>
+                <div class="streak-day" id="day-4">4<br>💎</div>
+                <div class="streak-day" id="day-5">5<br>💰</div>
+                <div class="streak-day" id="day-6">6<br>💎</div>
+                <div class="streak-day" id="day-7" style="grid-column: span 2; background: rgba(251, 191, 36, 0.2); border-color: var(--gold);">7<br>🎁</div>
+            </div>
+            <button id="claim-streak-btn" class="enter-btn" onclick="claimDailyStreak()" style="width: 100%; background: var(--gold); color: black;">CLAIM</button>
+        </div>
+    </div>
+
+    <div id="idle-reward-modal" class="modal-overlay" style="display: none; z-index: 2600;">
+        <div class="modal-content glass" style="border-color: #10b981;">
+            <h2 style="color: #10b981;">🕒 OFFLINE LOOT</h2>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 5px;">Your Vault generated coins while you were away!</p>
+            <div class="reward-box" id="idle-reward-amount" style="color: #10b981; border-color: #10b981;">+0 💰</div>
+            <button class="enter-btn" onclick="claimIdleReward()" style="width: 100%; margin-top: 10px; background: #10b981;">CLAIM LOOT</button>
+        </div>
+    </div>
+
+    <div id="gacha-modal" class="modal-overlay" style="display: none; z-index: 2500;">
+        <div class="modal-content glass">
+            <h2>🎁 MYSTERY REWARD</h2>
+            <div id="gacha-reward-container" style="position: relative; padding: 20px;">
+                <div id="rays-effect" class="light-rays" style="display: none;"></div>
+                <div class="reward-box" id="gacha-reward-box"></div>
+            </div>
+            <button class="enter-btn" onclick="document.getElementById('gacha-modal').style.display='none';" style="width: 100%; margin-top: 15px;">AWESOME</button>
+        </div>
+    </div>
+
+    <div id="tutorial-overlay" class="modal-overlay" style="display: none; background: rgba(0,0,0,0.85); z-index: 5000;">
+        <div id="tutorial-box" class="glass" style="position: absolute; width: 80%; max-width: 300px; text-align: center; border-color: var(--gold); pointer-events: none;">
+            <p id="tutorial-text" style="font-size: 1.1rem; margin-bottom: 10px;"></p>
+            <div id="tutorial-pointer" style="width: 0; height: 0; position: absolute; left: 50%; transform: translateX(-50%);"></div>
+        </div>
+        <div id="tutorial-click-blocker" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" onclick="tutorialNextStep()"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
