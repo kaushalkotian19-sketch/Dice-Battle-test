@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dice-battle-elite-v1.2';
+const CACHE_NAME = 'dice-battle-elite-v1.3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
