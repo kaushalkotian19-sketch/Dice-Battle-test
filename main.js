@@ -3,7 +3,40 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Failed:', err)));
 }
 
+// --- 🔥 FIREBASE SETUP & INVISIBLE LOGIN ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDBi43PAlEbRssq_VPAS-ZTvC48ASI2yuE",
+  authDomain: "dice-battle-elite-a1b2c.firebaseapp.com",
+  projectId: "dice-battle-elite-a1b2c",
+  storageBucket: "dice-battle-elite-a1b2c.firebasestorage.app",
+  messagingSenderId: "937761058634",
+  appId: "1:937761058634:web:5e1df692ec74d6f8479bb3",
+  measurementId: "G-R8L39Y6TXR"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+let playerUID = null; 
+
+// Sign in invisibly the moment the game opens
+signInAnonymously(auth).catch((error) => {
+    console.error("Firebase Login Error:", error.code, error.message);
+});
+
+// Listen for the login to succeed
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        playerUID = user.uid;
+        console.log("🔥 Cloud Connected! Player Secret ID:", playerUID);
+    }
+});
+
 // --- GAME STATE ---
+let playerName = localStorage.getItem("playerName") || "WARRIOR";
 let coins = Number(localStorage.getItem("coins"));
 if (isNaN(coins) || coins === null) coins = 10000;
 
@@ -335,7 +368,32 @@ function showTab(tabId) {
     else { nav.style.display = 'flex'; wallet.style.display = 'flex'; }
 }
 
-function useSkill(type) {
+window.savePlayerName = function() {
+    const input = document.getElementById('player-name-input').value.trim();
+    if (input.length > 0 && input.length <= 12) {
+        playerName = input.toUpperCase();
+        localStorage.setItem("playerName", playerName);
+        if(!isMuted) sounds.win.play().catch(() => {});
+        alert(`Name securely saved as: ${playerName}`);
+        updateUI();
+    } else {
+        alert("Please enter a valid name (1-12 characters).");
+    }
+}
+
+window.switchLeaderboard = function(type) {
+    document.querySelectorAll('.lb-tab').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`tab-${type}`).classList.add('active');
+    
+    if (type === 'global') {
+        document.getElementById('top-runs-container').innerHTML = '<p style="text-align:center; color:var(--gold); font-weight:bold; margin-top: 20px;">📡 Connecting to Cloud Server...</p>';
+        // fetchGlobalLeaderboard(); <-- We will activate this in the next step!
+    } else {
+        updateUI(); // Refreshes the local offline top 5
+    }
+}
+
+window.useSkill = function(type) {
     if (type === 'heal' && cooldowns.heal === 0 && coins >= 50) {
         if (p1HP >= upgrades.hp) return; 
         coins -= 50; updateMissionProgress('heal');
@@ -349,7 +407,7 @@ function useSkill(type) {
     updateUI();
 }
 
-function rollDice() {
+window.rollDice = function() {
     const rollBtn = document.querySelector('.roll-btn'); rollBtn.disabled = true; rollBtn.style.opacity = '0.5';
     const existingBuff = document.querySelector('.battle-buff'); if (existingBuff) existingBuff.remove();
     updateMissionProgress('play');
@@ -421,7 +479,7 @@ function checkBattleStatus() {
 }
 
 // --- SHOP LOGIC ---
-function simulatePurchase(tokenAmount, priceStr) {
+window.simulatePurchase = function(tokenAmount, priceStr) {
     const confirmBuy = confirm(`[SIMULATED PURCHASE]\n\nDo you want to buy ${tokenAmount} 💎 for ${priceStr}?\n(No real money will be charged)`);
     if (confirmBuy) {
         setTimeout(() => {
@@ -435,7 +493,7 @@ function simulatePurchase(tokenAmount, priceStr) {
     }
 }
 
-function exchangeCurrency(diamondCost, coinReward) {
+window.exchangeCurrency = function(diamondCost, coinReward) {
     if (tokens >= diamondCost) {
         tokens -= diamondCost;
         coins += coinReward;
@@ -447,7 +505,7 @@ function exchangeCurrency(diamondCost, coinReward) {
     }
 }
 
-function buySkin(skinId, cost) {
+window.buySkin = function(skinId, cost) {
     if (ownedSkins.includes(skinId)) { 
         activeSkin = skinId; 
     } else if (coins >= cost) { 
@@ -470,13 +528,13 @@ function buySkin(skinId, cost) {
     updateUI();
 }
 
-function buyPermanent(type) {
+window.buyPermanent = function(type) {
     let cost = (type === 'hp') ? 10 : 25;
     if (tokens >= cost) { tokens -= cost; if (type === 'hp') { upgrades.hp += 20; p1HP = upgrades.hp; } else { upgrades.luck += 5; } }
     updateUI();
 }
 
-function handlePrestige() {
+window.handlePrestige = function() {
     if (level >= 50) {
         pastRuns.push({ level: highestLevel, prestige: prestigeCount });
         prestigeCount++; level = 1; highestLevel = 1; coins = 0; p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
@@ -484,11 +542,28 @@ function handlePrestige() {
     } else { alert("You must reach Level 50 to Prestige!"); }
 }
 
+// Ensure globally called functions from HTML are attached to window
+window.startGame = startGame;
+window.showTab = showTab;
+window.claimDailyReward = claimDailyReward;
+window.openMysteryBox = openMysteryBox;
+window.showAd = showAd;
+window.closeAd = closeAd;
+window.claimAchievement = claimAchievement;
+window.toggleMute = toggleMute;
+window.adjustVolume = adjustVolume;
+
 // --- UPDATE UI LOGIC ---
 function updateUI() {
     document.getElementById("coins-game").textContent = Math.floor(coins).toLocaleString();
     document.getElementById("tokens-game").textContent = tokens;
     document.getElementById("lvl-num").textContent = level;
+    
+    document.getElementById("player-name-display").textContent = playerName;
+    const nameInput = document.getElementById("player-name-input");
+    if (nameInput && document.activeElement !== nameInput) {
+        nameInput.value = playerName; 
+    }
     
     let maxP2HP = getEnemyMaxHP(level);
     document.getElementById("p1-hp").style.width = Math.max(0, (p1HP / upgrades.hp * 100)) + "%";
@@ -549,7 +624,9 @@ function updateUI() {
     }
 
     const topRunsContainer = document.getElementById('top-runs-container');
-    if (topRunsContainer) {
+    const localTabActive = document.getElementById('tab-local') ? document.getElementById('tab-local').classList.contains('active') : true;
+    
+    if (topRunsContainer && localTabActive) {
         topRunsContainer.innerHTML = ''; 
         let allRuns = [...pastRuns, { level: highestLevel, prestige: prestigeCount, isCurrent: true }];
         allRuns.sort((a, b) => { if (b.prestige !== a.prestige) return b.prestige - a.prestige; return b.level - a.level; });
@@ -625,6 +702,7 @@ function toggleMute() { isMuted = !isMuted; localStorage.setItem("gameMuted", is
 function adjustVolume() { const vol = document.getElementById("volume-slider").value; for (let s in sounds) sounds[s].volume = (s === 'bgm') ? vol * 0.4 : vol; }
 
 function saveData() {
+    localStorage.setItem("playerName", playerName);
     localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission)); localStorage.setItem("pastRuns", JSON.stringify(pastRuns)); localStorage.setItem("dailyAdsWatched", dailyAdsWatched); localStorage.setItem("lastAdDate", lastAdDate);
 }
 
