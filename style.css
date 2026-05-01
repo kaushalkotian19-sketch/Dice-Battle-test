@@ -9,7 +9,8 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { 
     margin: 0; padding: 0; background: var(--bg-gradient); color: white; 
-    font-family: system-ui, sans-serif; overflow: hidden; height: 100vh; width: 100vw;
+    font-family: system-ui, sans-serif; overflow: hidden; 
+    height: 100dvh; width: 100vw;
 }
 
 /* --- ENVIRONMENTS --- */
@@ -19,9 +20,9 @@ body.env-badlands { --bg-gradient: radial-gradient(circle at top, #7c2d12 0%, #0
 body.env-void { --bg-gradient: radial-gradient(circle at top, #4c1d95 0%, #020617 100%); }
 body.env-volcano { --bg-gradient: radial-gradient(circle at top, #7f1d1d 0%, #020617 100%); }
 
-.tab-content { display: none; height: 100vh; width: 100%; }
+.tab-content { display: none; height: 100dvh; width: 100%; }
 .tab-content.active { display: block; }
-.home-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.home-container { height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .main-title { font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
 
 /* DEV CREDIT */
@@ -30,7 +31,14 @@ body.env-volcano { --bg-gradient: radial-gradient(circle at top, #7f1d1d 0%, #02
 
 /* GLASS & LAYOUT */
 .glass { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 16px; margin: 15px; padding: 20px; }
-.main-scroll-area { height: calc(100vh - 125px); overflow-y: auto; padding-bottom: 20px; }
+
+/* The Magic Scroll Fix */
+.main-scroll-area { 
+    height: 100%; 
+    overflow-y: auto; 
+    padding-bottom: 160px; /* Gives plenty of space above the nav bars! */
+    box-sizing: border-box; 
+}
 
 /* ARENA */
 .player-info { text-align: center; margin-top: 15px; }
