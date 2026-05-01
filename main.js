@@ -40,7 +40,14 @@ onAuthStateChanged(auth, (user) => {
 
 
 // --- GAME STATE ---
-let playerName = localStorage.getItem("playerName") || "WARRIOR";
+let playerName = localStorage.getItem("playerName");
+if (!playerName) {
+    // Generates a random 4-digit number (e.g., WARRIOR-4821)
+    const randomTag = Math.floor(1000 + Math.random() * 9000);
+    playerName = `WARRIOR-${randomTag}`;
+    localStorage.setItem("playerName", playerName);
+}
+
 let coins = Number(localStorage.getItem("coins"));
 if (isNaN(coins) || coins === null) coins = 10000;
 
@@ -62,19 +69,11 @@ let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false }
 
 let isMuted = localStorage.getItem("gameMuted") === "true";
 
-// --- SKIN DATABASE ---
-const skinData = {
-    classic: { id: 'classic', name: 'CLASSIC', price: 0, prefixP1: '', prefixP2: '' },
-    neon: { id: 'neon', name: 'NEON', price: 5000, prefixP1: 'neon-', prefixP2: 'neon-' },
-    forged: { id: 'forged', name: 'FORGED', price: 10000, prefixP1: 'steel-', prefixP2: 'steel-' },
-    void: { id: 'void', name: 'VOID', price: 25000, prefixP1: 'void-', prefixP2: 'void-' },
-    magma: { id: 'magma', name: 'MAGMA & ICE', price: 50000, prefixP1: 'magma-', prefixP2: 'cold-' },
-    silver: { id: 'silver', name: 'ROYAL SILVER', price: 100000, prefixP1: 'silver-', prefixP2: 'silver-' },
-    gold: { id: 'gold', name: 'ROYAL GOLD', price: 500000, prefixP1: 'gold-', prefixP2: 'gold-' },
-    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'cosmos-', prefixP2: 'cosmos-' }
-};
+// --- CHEST & DAILY LOGIC ---
+let dailyChestsOpened = Number(localStorage.getItem("dailyChestsOpened")) || 0;
+let lastChestDate = localStorage.getItem("lastChestDate") || "";
+const MAX_DAILY_CHESTS = 3;
 
-// --- DAILY REWARD & AD STATE ---
 let lastLoginDate = localStorage.getItem("lastLoginDate") || "";
 let loginStreak = Number(localStorage.getItem("loginStreak")) || 0;
 let pendingReward = null;
@@ -89,6 +88,18 @@ const dailyRewards = [
     { type: 'tokens', amount: 10, text: "10 💎" }, { type: 'tokens', amount: 15, text: "15 💎" },
     { type: 'tokens', amount: 25, text: "25 💎" } 
 ];
+
+// --- SKIN DATABASE ---
+const skinData = {
+    classic: { id: 'classic', name: 'CLASSIC', price: 0, prefixP1: '', prefixP2: '' },
+    neon: { id: 'neon', name: 'NEON', price: 5000, prefixP1: 'neon-', prefixP2: 'neon-' },
+    forged: { id: 'forged', name: 'FORGED', price: 10000, prefixP1: 'steel-', prefixP2: 'steel-' },
+    void: { id: 'void', name: 'VOID', price: 25000, prefixP1: 'void-', prefixP2: 'void-' },
+    magma: { id: 'magma', name: 'MAGMA & ICE', price: 50000, prefixP1: 'magma-', prefixP2: 'cold-' },
+    silver: { id: 'silver', name: 'ROYAL SILVER', price: 100000, prefixP1: 'silver-', prefixP2: 'silver-' },
+    gold: { id: 'gold', name: 'ROYAL GOLD', price: 500000, prefixP1: 'gold-', prefixP2: 'gold-' },
+    mythic: { id: 'mythic', name: 'MYTHIC', price: 1000000, prefixP1: 'cosmos-', prefixP2: 'cosmos-' }
+};
 
 // --- ACHIEVEMENT TRACKING ---
 let stats = JSON.parse(localStorage.getItem("stats")) || { bossesDefeated: 0, critsLanded: 0, missionsCompleted: 0 };
@@ -276,9 +287,20 @@ window.closeAd = function() {
 
 // --- MYSTERY BOX (GACHA) LOGIC ---
 window.openMysteryBox = function() {
+    const today = new Date().toDateString();
+    if (lastChestDate !== today) { dailyChestsOpened = 0; lastChestDate = today; }
+    
+    if (dailyChestsOpened >= MAX_DAILY_CHESTS) {
+        alert(`You have opened all ${MAX_DAILY_CHESTS} chests today! Come back tomorrow.`); return;
+    }
+
     const cost = 2000;
     if (coins < cost) { alert("Not enough coins! Keep battling."); return; }
-    coins -= cost; updateUI();
+    
+    coins -= cost; 
+    dailyChestsOpened++; 
+    updateUI();
+
     const btn = document.getElementById('gacha-btn'); const originalText = btn.innerHTML;
     btn.innerHTML = '🎲 UNLOCKING...'; btn.classList.add('gacha-roll');
     if(!isMuted) sounds.roll.play().catch(() => {});
@@ -656,6 +678,18 @@ function updateUI() {
     const mDesc = document.getElementById('mission-desc'); const mProg = document.getElementById('mission-progress'); const mMult = document.getElementById('current-mult-display');
     if (mDesc && mProg && mMult) { mDesc.textContent = currentMission.desc; mProg.textContent = `${currentMission.progress} / ${currentMission.target}`; mMult.textContent = `${upgrades.mult}x MULT`; }
 
+    // Update Gacha Btn Limit
+    const gachaBtn = document.getElementById('gacha-btn');
+    if (gachaBtn && !gachaBtn.innerHTML.includes('UNLOCKING')) {
+        const today = new Date().toDateString();
+        let count = (lastChestDate === today) ? dailyChestsOpened : 0;
+        if (count >= MAX_DAILY_CHESTS) {
+            gachaBtn.innerHTML = `🎁 COME BACK TOMORROW`; gachaBtn.style.opacity = '0.5';
+        } else {
+            gachaBtn.innerHTML = `OPEN CHEST (2,000 💰) [${MAX_DAILY_CHESTS - count} LEFT]`; gachaBtn.style.opacity = '1';
+        }
+    }
+
     const adBtn = document.getElementById('watch-ad-btn');
     if (adBtn) {
         const today = new Date().toDateString();
@@ -756,7 +790,27 @@ function updateUI() {
 
 function saveData() {
     localStorage.setItem("playerName", playerName);
-    localStorage.setItem("coins", coins); localStorage.setItem("tokens", tokens); localStorage.setItem("level", level); localStorage.setItem("totalWins", totalWins); localStorage.setItem("highestLevel", highestLevel); localStorage.setItem("prestigeCount", prestigeCount); localStorage.setItem("upgrades", JSON.stringify(upgrades)); localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); localStorage.setItem("activeSkin", activeSkin); localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); localStorage.setItem("buffs", JSON.stringify(buffs)); localStorage.setItem("lastLoginDate", lastLoginDate); localStorage.setItem("loginStreak", loginStreak); localStorage.setItem("stats", JSON.stringify(stats)); localStorage.setItem("achievements", JSON.stringify(achievements)); localStorage.setItem("currentMission", JSON.stringify(currentMission)); localStorage.setItem("pastRuns", JSON.stringify(pastRuns)); localStorage.setItem("dailyAdsWatched", dailyAdsWatched); localStorage.setItem("lastAdDate", lastAdDate);
+    localStorage.setItem("coins", coins); 
+    localStorage.setItem("tokens", tokens); 
+    localStorage.setItem("level", level); 
+    localStorage.setItem("totalWins", totalWins); 
+    localStorage.setItem("highestLevel", highestLevel); 
+    localStorage.setItem("prestigeCount", prestigeCount); 
+    localStorage.setItem("upgrades", JSON.stringify(upgrades)); 
+    localStorage.setItem("ownedSkins", JSON.stringify(ownedSkins)); 
+    localStorage.setItem("activeSkin", activeSkin); 
+    localStorage.setItem("cooldowns", JSON.stringify(cooldowns)); 
+    localStorage.setItem("buffs", JSON.stringify(buffs)); 
+    localStorage.setItem("lastLoginDate", lastLoginDate); 
+    localStorage.setItem("loginStreak", loginStreak); 
+    localStorage.setItem("stats", JSON.stringify(stats)); 
+    localStorage.setItem("achievements", JSON.stringify(achievements)); 
+    localStorage.setItem("currentMission", JSON.stringify(currentMission)); 
+    localStorage.setItem("pastRuns", JSON.stringify(pastRuns)); 
+    localStorage.setItem("dailyAdsWatched", dailyAdsWatched); 
+    localStorage.setItem("lastAdDate", lastAdDate);
+    localStorage.setItem("dailyChestsOpened", dailyChestsOpened);
+    localStorage.setItem("lastChestDate", lastChestDate);
 }
 
 // --- IMAGE PRELOADER ---
