@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dice Battle">
     <link rel="apple-touch-icon" href="assets/red-dice.png">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -33,7 +34,7 @@
         <section id="tab-arena" class="tab-content">
             <div class="main-scroll-area">
                 <div class="player-info">
-                    <h2 class="player-tag">WARRIOR LVL <span id="lvl-num">1</span></h2>
+                    <h2 class="player-tag"><span id="player-name-display">WARRIOR</span> LVL <span id="lvl-num">1</span></h2>
                     <div id="prestige-star"></div>
                 </div>
 
@@ -74,6 +75,12 @@
 
         <section id="tab-vault" class="tab-content">
             <div class="main-scroll-area">
+
+                <div class="settings-group glass" style="border-color: #38bdf8;">
+                    <h3 style="color: #38bdf8;">👤 PLAYER PROFILE</h3>
+                    <input type="text" id="player-name-input" placeholder="ENTER NAME" maxlength="12" class="glass-input">
+                    <button class="glass-btn" onclick="savePlayerName()" style="margin-bottom: 10px; border-color: #38bdf8; color: #38bdf8;">SAVE NAME</button>
+                </div>
 
                 <div class="shop-section glass" style="border-color: var(--gold); background: rgba(0,0,0,0.6);">
                     <h3 style="color: var(--gold); text-align: center; font-size: 1.2rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">👑 VIP DIAMOND SHOP</h3>
@@ -164,12 +171,16 @@
             <div class="main-scroll-area">
                 <h2 class="section-title">🏆 HALL OF FAME</h2>
                 
+                <div class="leaderboard-tabs">
+                    <button id="tab-local" class="lb-tab active" onclick="switchLeaderboard('local')">LOCAL BEST</button>
+                    <button id="tab-global" class="lb-tab" onclick="switchLeaderboard('global')">GLOBAL TOP 50</button>
+                </div>
+                
                 <div class="stats-container glass">
                     <div style="display:flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">
                         <span>TOTAL WINS</span> <span id="total-wins" class="gold-text">0</span>
                     </div>
                     <hr>
-                    <h3 style="text-align: center; margin-top: 15px; letter-spacing: 1px;">TOP 5 RUNS</h3>
                     <div id="top-runs-container">
                         </div>
                 </div>
@@ -217,6 +228,7 @@
         </div>
 
     </div>
-    <script src="main.js"></script>
+    
+    <script type="module" src="main.js"></script>
 </body>
 </html>
