@@ -71,9 +71,6 @@ body.env-volcano { --bg-gradient: radial-gradient(circle at top, #7f1d1d 0%, #02
 .premium-card { background: linear-gradient(180deg, #1f2937 0%, #020617 100%); border: 2px solid rgba(251, 191, 36, 0.3); border-radius: 16px; padding: 20px 10px 15px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.5); transition: transform 0.2s ease; }
 .premium-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 45%; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%); pointer-events: none; }
 .premium-card.best-value { border: 2px solid var(--gold); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(251, 191, 36, 0.2); transform: scale(1.02); }
-.premium-ribbon { position: absolute; top: 12px; right: -28px; width: 100px; background: #ef4444; color: white; transform: rotate(45deg); font-size: 0.65rem; font-weight: 900; letter-spacing: 1px; padding: 4px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 2; }
-.premium-icon { font-size: 2.8rem; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.6)); margin-bottom: 5px; }
-.premium-title { font-size: 1rem; font-weight: 900; color: white; margin-bottom: 15px; letter-spacing: 0.5px; }
 .premium-buy-btn { width: 90%; background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); color: #000; border: none; padding: 12px 5px; border-radius: 8px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4); position: relative; z-index: 2; transition: transform 0.1s; }
 .premium-buy-btn:active { transform: scale(0.95); }
 
@@ -186,3 +183,11 @@ body.env-dungeon .particle { width: 4px; height: 4px; background: rgba(255,255,2
 .heat-warning { background: #ef4444 !important; box-shadow: 0 0 15px #ef4444 !important; }
 .btn-jammed { background: #475569 !important; color: #94a3b8 !important; box-shadow: none !important; border-color: #ef4444; }
 .shatter-text { font-size: 2rem !important; text-shadow: 0 0 15px #38bdf8, 0 0 5px #ffffff; z-index: 999; }
+
+/* --- GAME GUIDE SCROLL AREA --- */
+.guide-scroll-area { max-height: 55vh; overflow-y: auto; padding-right: 10px; font-size: 0.85rem; line-height: 1.5; color: rgba(255, 255, 255, 0.8); scrollbar-width: thin; scrollbar-color: #38bdf8 transparent; }
+.guide-scroll-area::-webkit-scrollbar { width: 6px; }
+.guide-scroll-area::-webkit-scrollbar-thumb { background-color: #38bdf8; border-radius: 10px; }
+.guide-scroll-area h4 { color: var(--gold); margin: 15px 0 5px 0; font-size: 1rem; text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); text-transform: uppercase; }
+.guide-scroll-area ul { padding-left: 20px; margin: 0; }
+.guide-scroll-area li { margin-bottom: 8px; }
