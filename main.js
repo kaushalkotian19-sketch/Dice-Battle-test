@@ -18,23 +18,17 @@ const firebaseConfig = {
   measurementId: "G-R8L39Y6TXR"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 let playerUID = null; 
 
-// Sign in invisibly the moment the game opens
-signInAnonymously(auth).catch((error) => {
-    console.error("Firebase Login Error:", error.code, error.message);
-});
+signInAnonymously(auth).catch((error) => console.error("Firebase Login Error:", error.code, error.message));
 
-// Listen for the login to succeed
 onAuthStateChanged(auth, (user) => {
     if (user) {
         playerUID = user.uid;
-        console.log("🔥 Cloud Connected! Player Secret ID:", playerUID);
-        syncToCloud(); // Instantly sync their score to the cloud when they load in!
+        syncToCloud(); 
     }
 });
 
@@ -42,7 +36,6 @@ onAuthStateChanged(auth, (user) => {
 // --- GAME STATE ---
 let playerName = localStorage.getItem("playerName");
 if (!playerName) {
-    // Generates a random 4-digit number (e.g., WARRIOR-4821)
     const randomTag = Math.floor(1000 + Math.random() * 9000);
     playerName = `WARRIOR-${randomTag}`;
     localStorage.setItem("playerName", playerName);
@@ -68,6 +61,30 @@ let cooldowns = JSON.parse(localStorage.getItem("cooldowns")) || { heal: 0, doub
 let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false };
 
 let isMuted = localStorage.getItem("gameMuted") === "true";
+
+// --- COMBAT OBSTACLE STATE ---
+let heatLevel = 0;
+let isOverheated = false;
+let freezeTapsLeft = 0;
+let bossParryActive = false;
+let burnTurnsLeft = 0;
+
+setInterval(() => {
+    if (!isOverheated && heatLevel > 0) {
+        heatLevel = Math.max(0, heatLevel - 4); 
+        updateHeatUI();
+    }
+}, 100);
+
+function updateHeatUI() {
+    const fill = document.getElementById('heat-bar-fill');
+    if(fill) {
+        fill.style.width = `${heatLevel}%`;
+        if (isOverheated) fill.className = 'heat-warning';
+        else if (heatLevel > 75) fill.style.background = '#f97316'; 
+        else fill.style.background = '#fbbf24'; 
+    }
+}
 
 // --- CHEST & DAILY LOGIC ---
 let dailyChestsOpened = Number(localStorage.getItem("dailyChestsOpened")) || 0;
@@ -128,7 +145,8 @@ let currentMission = JSON.parse(localStorage.getItem("currentMission")) || { ...
 // --- AUDIO SYSTEM ---
 const sounds = {
     roll: new Audio('dice_roll.mp3'), win: new Audio('win_ding.mp3'), lose: new Audio('lose_thud.mp3'),
-    pulse: new Audio('pulse.mp3'), heartbeat: new Audio('heartbeat.mp3'), bgm: new Audio('ambient_synth.mp3')
+    pulse: new Audio('pulse.mp3'), heartbeat: new Audio('heartbeat.mp3'), bgm: new Audio('ambient_synth.mp3'),
+    buzz: new Audio('error_buzz.mp3'), shatter: new Audio('glass_shatter.mp3'), ping: new Audio('danger_ping.mp3')
 };
 sounds.bgm.loop = true; sounds.bgm.volume = 0.4;
 
@@ -241,65 +259,43 @@ function updateMissionProgress(actionType, amount = 1) {
     }
 }
 
-// --- AD SIMULATOR LOGIC ---
+// --- AD SIMULATOR LOGIC (HIDDEN IN UI, KEPT FOR ECONOMY) ---
 let adInterval;
-
 window.showAd = function() {
     const today = new Date().toDateString();
-    if (lastAdDate !== today) {
-        dailyAdsWatched = 0;
-        lastAdDate = today;
-    }
-    if (dailyAdsWatched >= MAX_DAILY_ADS) {
-        alert(`You have reached the daily limit of ${MAX_DAILY_ADS} ads! Check back tomorrow.`);
-        return;
-    }
+    if (lastAdDate !== today) { dailyAdsWatched = 0; lastAdDate = today; }
+    if (dailyAdsWatched >= MAX_DAILY_ADS) { alert(`Check back tomorrow.`); return; }
     document.getElementById('ad-modal').style.display = 'flex'; 
     document.getElementById('ad-close-btn').style.display = 'none';
     let timeLeft = 5; 
     const timerEl = document.getElementById('ad-timer');
-    timerEl.textContent = timeLeft; 
-    timerEl.style.color = '#ef4444'; 
-    timerEl.style.textShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
+    timerEl.textContent = timeLeft; timerEl.style.color = '#ef4444'; 
     
     adInterval = setInterval(() => {
-        timeLeft--; 
-        timerEl.textContent = timeLeft;
+        timeLeft--; timerEl.textContent = timeLeft;
         if (timeLeft <= 0) {
-            clearInterval(adInterval); 
-            timerEl.textContent = "DONE"; 
-            timerEl.style.color = '#4ade80'; 
-            timerEl.style.textShadow = '0 0 20px rgba(74, 222, 128, 0.5)';
+            clearInterval(adInterval); timerEl.textContent = "DONE"; timerEl.style.color = '#4ade80'; 
             document.getElementById('ad-close-btn').style.display = 'block';
             if(!isMuted) sounds.win.play().catch(() => {});
         }
     }, 1000); 
 }
-
 window.closeAd = function() {
     document.getElementById('ad-modal').style.display = 'none'; 
-    tokens += 5; 
-    dailyAdsWatched++;
-    if(!isMuted) sounds.pulse.play().catch(() => {}); 
-    alert(`Ad complete! You earned 5 💎 Tokens. (${MAX_DAILY_ADS - dailyAdsWatched} ads remaining today)`); 
-    updateUI();
+    tokens += 5; dailyAdsWatched++;
+    if(!isMuted) sounds.pulse.play().catch(() => {}); updateUI();
 }
 
 // --- MYSTERY BOX (GACHA) LOGIC ---
 window.openMysteryBox = function() {
     const today = new Date().toDateString();
     if (lastChestDate !== today) { dailyChestsOpened = 0; lastChestDate = today; }
-    
-    if (dailyChestsOpened >= MAX_DAILY_CHESTS) {
-        alert(`You have opened all ${MAX_DAILY_CHESTS} chests today! Come back tomorrow.`); return;
-    }
+    if (dailyChestsOpened >= MAX_DAILY_CHESTS) { alert(`You have opened all ${MAX_DAILY_CHESTS} chests today!`); return; }
 
     const cost = 2000;
     if (coins < cost) { alert("Not enough coins! Keep battling."); return; }
     
-    coins -= cost; 
-    dailyChestsOpened++; 
-    updateUI();
+    coins -= cost; dailyChestsOpened++; updateUI();
 
     const btn = document.getElementById('gacha-btn'); const originalText = btn.innerHTML;
     btn.innerHTML = '🎲 UNLOCKING...'; btn.classList.add('gacha-roll');
@@ -354,7 +350,6 @@ const buffTypes = [
 function spawnBattleBuff() {
     const existing = document.querySelector('.battle-buff'); 
     if (existing) existing.remove();
-    
     if (Math.random() * 100 > 15) return;
     
     const arena = document.querySelector('.battle-arena'); 
@@ -363,12 +358,10 @@ function spawnBattleBuff() {
 
     const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
     const buffEl = document.createElement('div');
-    buffEl.className = 'battle-buff'; 
-    buffEl.textContent = buff.icon;
+    buffEl.className = 'battle-buff'; buffEl.textContent = buff.icon;
     
     let offset = Math.floor(Math.random() * 40) - 20; 
-    buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
-    buffEl.style.top = '-15px'; 
+    buffEl.style.left = `calc(50% - 20px + ${offset}px)`; buffEl.style.top = '-15px'; 
 
     buffEl.onclick = () => {
         nextRollBuff = buff.id; 
@@ -381,30 +374,19 @@ function spawnBattleBuff() {
 
 // --- 🌍 GLOBAL LEADERBOARD LOGIC ---
 window.syncToCloud = async function() {
-    if (!playerUID) return; // Wait until logged in securely
+    if (!playerUID) return; 
     try {
-        await setDoc(doc(db, "leaderboard", playerUID), {
-            name: playerName,
-            level: highestLevel,
-            prestige: prestigeCount,
-            timestamp: new Date()
-        });
-        console.log("☁️ Score synced to Global Leaderboard!");
-    } catch (e) {
-        console.error("Error saving to cloud:", e);
-    }
+        await setDoc(doc(db, "leaderboard", playerUID), { name: playerName, level: highestLevel, prestige: prestigeCount, timestamp: new Date() });
+    } catch (e) { console.error("Error saving to cloud:", e); }
 }
 
 window.fetchGlobalLeaderboard = async function() {
     const container = document.getElementById('top-runs-container');
     try {
-        // Grab top 50, sorting by prestige first, then by level
         const q = query(collection(db, "leaderboard"), orderBy("prestige", "desc"), orderBy("level", "desc"), limit(50));
         const querySnapshot = await getDocs(q);
         
-        container.innerHTML = ''; 
-        let rank = 1;
-        
+        container.innerHTML = ''; let rank = 1;
         querySnapshot.forEach((doc) => {
             let data = doc.data();
             let rankClass = 'rank-novice'; 
@@ -415,19 +397,14 @@ window.fetchGlobalLeaderboard = async function() {
             let prestigeText = data.prestige > 0 ? ` (${data.prestige}⭐)` : '';
             let div = document.createElement('div'); div.className = 'run-row';
             div.innerHTML = `<div class="run-rank ${rankClass}">${rank}. ${data.name}</div><div class="run-stats">LVL ${data.level}${prestigeText}</div>`;
-            container.appendChild(div);
-            rank++;
+            container.appendChild(div); rank++;
         });
-        
         if(rank === 1) container.innerHTML = '<p style="text-align:center; color:white;">No global scores yet! Be the first!</p>';
-    } catch (e) {
-        console.error("Leaderboard fetch error:", e);
-        container.innerHTML = '<p style="text-align:center; color:#ef4444;">Failed to load leaderboard.</p>';
-    }
+    } catch (e) { container.innerHTML = '<p style="text-align:center; color:#ef4444;">Failed to load leaderboard.</p>'; }
 }
 
 
-// --- CORE FUNCTIONS (Attached to Window for Module) ---
+// --- CORE FUNCTIONS ---
 window.startGame = function() {
     showTab('arena');
     if (!isMuted) { sounds.pulse.play().catch(() => {}); sounds.bgm.play().catch(() => {}); }
@@ -445,15 +422,10 @@ window.showTab = function(tabId) {
 window.savePlayerName = function() {
     const input = document.getElementById('player-name-input').value.trim();
     if (input.length > 0 && input.length <= 12) {
-        playerName = input.toUpperCase();
-        localStorage.setItem("playerName", playerName);
+        playerName = input.toUpperCase(); localStorage.setItem("playerName", playerName);
         if(!isMuted) sounds.win.play().catch(() => {});
-        alert(`Name securely saved as: ${playerName}`);
-        syncToCloud(); // <-- Syncs their new name to the cloud!
-        updateUI();
-    } else {
-        alert("Please enter a valid name (1-12 characters).");
-    }
+        alert(`Name securely saved as: ${playerName}`); syncToCloud(); updateUI();
+    } else { alert("Please enter a valid name (1-12 characters)."); }
 }
 
 window.switchLeaderboard = function(type) {
@@ -463,9 +435,7 @@ window.switchLeaderboard = function(type) {
     if (type === 'global') {
         document.getElementById('top-runs-container').innerHTML = '<p style="text-align:center; color:var(--gold); font-weight:bold; margin-top: 20px;">📡 Fetching from Cloud...</p>';
         fetchGlobalLeaderboard(); 
-    } else {
-        updateUI(); // Refreshes the local offline top 5
-    }
+    } else { updateUI(); }
 }
 
 window.useSkill = function(type) {
@@ -483,7 +453,53 @@ window.useSkill = function(type) {
 }
 
 window.rollDice = function() {
-    const rollBtn = document.querySelector('.roll-btn'); rollBtn.disabled = true; rollBtn.style.opacity = '0.5';
+    // 1. OVERHEAT INTERCEPT
+    if (isOverheated) {
+        if(!isMuted) { sounds.buzz.currentTime = 0; sounds.buzz.play().catch(()=>{}); }
+        document.getElementById('main-roll-btn').classList.add('shake');
+        setTimeout(() => document.getElementById('main-roll-btn').classList.remove('shake'), 300);
+        return; 
+    }
+
+    // 2. PARRY (COUNTER-ATTACK) INTERCEPT
+    if (bossParryActive) {
+        bossParryActive = false;
+        document.getElementById('enemy-name').classList.remove('parry-warning');
+        
+        let parryDmg = Math.floor(getEnemyMaxHP(level) * 0.25);
+        p1HP -= parryDmg;
+        createDamagePop(`COUNTERED! -${parryDmg}`, 'p1-img', '#ef4444', true);
+        if(!isMuted) sounds.lose.play().catch(()=>{});
+        document.body.classList.add('violent-shake'); setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+        checkBattleStatus(); updateUI(); return;
+    }
+
+    // 3. HEAT ADDITION
+    heatLevel += 20;
+    if (heatLevel >= 100) {
+        isOverheated = true; heatLevel = 100;
+        const btn = document.getElementById('main-roll-btn');
+        btn.classList.add('btn-jammed'); btn.innerText = "⚠️ OVERHEATED ⚠️";
+        if(!isMuted) sounds.buzz.play().catch(()=>{});
+        
+        setTimeout(() => {
+            isOverheated = false; heatLevel = 0;
+            btn.classList.remove('btn-jammed'); btn.innerText = "ROLL DICE";
+            updateHeatUI();
+        }, 2500);
+        return; 
+    }
+    updateHeatUI();
+
+    // 4. BURN DAMAGE
+    if (burnTurnsLeft > 0) {
+        p1HP -= 5; burnTurnsLeft--;
+        createDamagePop("-5 🔥", 'p1-img', '#f97316');
+        if (p1HP <= 0) { checkBattleStatus(); updateUI(); return; }
+    }
+
+    const rollBtn = document.getElementById('main-roll-btn'); 
+    rollBtn.disabled = true; rollBtn.style.opacity = '0.5';
     const existingBuff = document.querySelector('.battle-buff'); if (existingBuff) existingBuff.remove();
     updateMissionProgress('play');
 
@@ -534,8 +550,14 @@ window.rollDice = function() {
             }
         }
         
-        nextRollBuff = null; checkBattleStatus(); checkAchievements(); updateUI(); spawnBattleBuff();
-        rollBtn.disabled = false; rollBtn.style.opacity = '1';
+        nextRollBuff = null; 
+        checkBattleStatus(); 
+        triggerBossObstacles(); // Fire obstacles after the roll resolves
+        checkAchievements(); 
+        updateUI(); 
+        spawnBattleBuff();
+        
+        if (!isOverheated) { rollBtn.disabled = false; rollBtn.style.opacity = '1'; }
     }, 400); 
 }
 
@@ -547,61 +569,86 @@ function checkBattleStatus() {
         totalWins++; level++; if (level > highestLevel) highestLevel = level;
         if (level % 10 === 0) triggerBossFlash();
         p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp; 
-        syncToCloud(); // Quietly syncs high score to cloud when you beat a level
+        syncToCloud(); 
     } else if (p1HP <= 0) {
         if(!isMuted) sounds.lose.play().catch(() => {});
         p1HP = upgrades.hp; p2HP = getEnemyMaxHP(level);
     }
 }
 
+// --- BOSS OBSTACLE TRIGGERS ---
+window.breakIce = function() {
+    freezeTapsLeft--;
+    const overlay = document.getElementById('freeze-overlay');
+    if (freezeTapsLeft <= 0) {
+        overlay.style.display = 'none';
+        if(!isMuted) sounds.shatter.play().catch(()=>{});
+        const pop = document.createElement('div'); pop.className = 'damage-pop shatter-text';
+        pop.innerText = "SHATTERED!"; pop.style.left = '50%'; pop.style.top = '40%';
+        document.body.appendChild(pop); setTimeout(() => pop.remove(), 800);
+    } else {
+        document.getElementById('freeze-taps-text').innerText = `TAP: ${freezeTapsLeft}`;
+        overlay.classList.add('shake'); setTimeout(() => overlay.classList.remove('shake'), 100);
+        if(!isMuted) { sounds.roll.currentTime = 0; sounds.roll.play().catch(()=>{}); } 
+    }
+}
+
+window.triggerBossObstacles = function() {
+    // 1. Parry Stance (15% chance if level > 10)
+    if (level >= 10 && Math.random() < 0.15 && !bossParryActive) {
+        bossParryActive = true;
+        if(!isMuted) sounds.ping.play().catch(()=>{});
+        const bossNameUI = document.getElementById('enemy-name');
+        bossNameUI.classList.add('parry-warning'); bossNameUI.innerText = "⚠️ PARRY STANCE ⚠️";
+        setTimeout(() => {
+            if (bossParryActive) {
+                bossParryActive = false; bossNameUI.classList.remove('parry-warning'); updateUI(); 
+            }
+        }, 2000); 
+    }
+    // 2. Freeze Minigame (15% chance if level > 20)
+    if (level >= 20 && Math.random() < 0.15 && !bossParryActive) {
+        freezeTapsLeft = 5;
+        const overlay = document.getElementById('freeze-overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('freeze-taps-text').innerText = `TAP: ${freezeTapsLeft}`;
+        if(!isMuted) sounds.pulse.play().catch(()=>{});
+    }
+    // 3. Burn (10% chance if level > 30)
+    if (level >= 30 && Math.random() < 0.10) {
+        burnTurnsLeft = 3; createDamagePop("IGNITED!", 'p1-img', '#f97316', true);
+    }
+}
+
 // --- SHOP LOGIC ---
 window.simulatePurchase = function(tokenAmount, priceStr) {
-    const confirmBuy = confirm(`[SIMULATED PURCHASE]\n\nDo you want to buy ${tokenAmount} 💎 for ${priceStr}?\n(No real money will be charged)`);
-    if (confirmBuy) {
+    if (confirm(`[SIMULATED PURCHASE]\n\nDo you want to buy ${tokenAmount} 💎 for ${priceStr}?\n(No real money will be charged)`)) {
         setTimeout(() => {
             tokens += tokenAmount;
             if(!isMuted) sounds.pulse.play().catch(() => {});
-            document.body.classList.add('violent-shake'); 
-            setTimeout(() => document.body.classList.remove('violent-shake'), 500);
-            alert(`🎉 PAYMENT SUCCESSFUL!\n\nThank you for supporting the game! You received ${tokenAmount} 💎.`);
-            updateUI();
+            document.body.classList.add('violent-shake'); setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+            alert(`🎉 PAYMENT SUCCESSFUL!\n\nThank you for supporting the game! You received ${tokenAmount} 💎.`); updateUI();
         }, 800);
     }
 }
 
 window.exchangeCurrency = function(diamondCost, coinReward) {
     if (tokens >= diamondCost) {
-        tokens -= diamondCost;
-        coins += coinReward;
+        tokens -= diamondCost; coins += coinReward;
         if(!isMuted) sounds.win.play().catch(() => {});
-        createDamagePop(`+${coinReward} 💰`, 'p1-img', '#fbbf24', false);
-        updateUI();
-    } else {
-        alert("Not enough Diamonds! Defeat Bosses or watch Ads to earn more.");
-    }
+        createDamagePop(`+${coinReward} 💰`, 'p1-img', '#fbbf24', false); updateUI();
+    } else { alert("Not enough Diamonds! Defeat Bosses or watch Ads to earn more."); }
 }
 
 window.buySkin = function(skinId, cost) {
-    if (ownedSkins.includes(skinId)) { 
-        activeSkin = skinId; 
-    } else if (coins >= cost) { 
-        coins -= cost; 
-        ownedSkins.push(skinId); 
-        activeSkin = skinId; 
-    }
+    if (ownedSkins.includes(skinId)) { activeSkin = skinId; } 
+    else if (coins >= cost) { coins -= cost; ownedSkins.push(skinId); activeSkin = skinId; }
     checkAchievements();
-    
-    // Instantly update Arena Dice to resting state
     let currentSkin = skinData[activeSkin] || skinData['classic'];
-    const p1Img = document.getElementById("p1-img");
-    const p2Img = document.getElementById("p2-img");
+    const p1Img = document.getElementById("p1-img"); const p2Img = document.getElementById("p2-img");
     if (p1Img) p1Img.src = `assets/${currentSkin.prefixP1}red-1.png`;
     if (p2Img) p2Img.src = `assets/${currentSkin.prefixP2}green-1.png`;
-    
-    // Preload the rolling animation images
-    preloadSkinImages(activeSkin);
-    
-    updateUI();
+    preloadSkinImages(activeSkin); updateUI();
 }
 
 window.buyPermanent = function(type) {
@@ -614,8 +661,7 @@ window.handlePrestige = function() {
     if (level >= 50) {
         pastRuns.push({ level: highestLevel, prestige: prestigeCount });
         prestigeCount++; level = 1; highestLevel = 1; coins = 0; p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
-        syncToCloud(); // Sync prestige status to the cloud!
-        updateUI(); 
+        syncToCloud(); updateUI(); 
         alert("PRESTIGE ACTIVATED! Your run has been saved to the Hall of Fame. Restarting at Level 1...");
     } else { alert("You must reach Level 50 to Prestige!"); }
 }
@@ -639,9 +685,7 @@ function updateUI() {
     
     document.getElementById("player-name-display").textContent = playerName;
     const nameInput = document.getElementById("player-name-input");
-    if (nameInput && document.activeElement !== nameInput) {
-        nameInput.value = playerName; 
-    }
+    if (nameInput && document.activeElement !== nameInput) { nameInput.value = playerName; }
     
     let maxP2HP = getEnemyMaxHP(level);
     document.getElementById("p1-hp").style.width = Math.max(0, (p1HP / upgrades.hp * 100)) + "%";
@@ -660,8 +704,16 @@ function updateUI() {
 
     const eName = document.getElementById("enemy-name");
     if(eName) {
-        if (isBoss) { eName.innerHTML = `👑 BOSS: ${currentEnemy.name} 👑`; eName.classList.add('boss-name'); p2HpBar.classList.add('boss-hp-bar'); eName.style.color = "#ef4444"; } 
-        else { eName.textContent = currentEnemy.name; eName.classList.remove('boss-name'); p2HpBar.classList.remove('boss-hp-bar'); eName.style.color = currentEnemy.color; }
+        if (isBoss) { 
+            if (!bossParryActive) eName.innerHTML = `👑 BOSS: ${currentEnemy.name} 👑`; 
+            eName.classList.add('boss-name'); p2HpBar.classList.add('boss-hp-bar'); 
+            if (!bossParryActive) eName.style.color = "#ef4444"; 
+        } 
+        else { 
+            if (!bossParryActive) eName.textContent = currentEnemy.name; 
+            eName.classList.remove('boss-name'); p2HpBar.classList.remove('boss-hp-bar'); 
+            if (!bossParryActive) eName.style.color = currentEnemy.color; 
+        }
     }
 
     const healBtn = document.getElementById('skill-heal'); const doubleBtn = document.getElementById('skill-double');
@@ -694,11 +746,8 @@ function updateUI() {
     if (adBtn) {
         const today = new Date().toDateString();
         let currentAdCount = (lastAdDate === today) ? dailyAdsWatched : 0;
-        if (currentAdCount >= MAX_DAILY_ADS) {
-            adBtn.innerHTML = `📺 COME BACK TOMORROW`; adBtn.style.opacity = '0.5';
-        } else {
-            adBtn.innerHTML = `📺 WATCH AD (+5 💎) [${MAX_DAILY_ADS - currentAdCount} LEFT]`; adBtn.style.opacity = '1';
-        }
+        if (currentAdCount >= MAX_DAILY_ADS) { adBtn.innerHTML = `📺 COME BACK TOMORROW`; adBtn.style.opacity = '0.5'; } 
+        else { adBtn.innerHTML = `📺 WATCH AD (+5 💎) [${MAX_DAILY_ADS - currentAdCount} LEFT]`; adBtn.style.opacity = '1'; }
     }
 
     const ribbon = document.getElementById('skin-ribbon');
@@ -740,38 +789,21 @@ function updateUI() {
         achievementData.forEach(ach => {
             let status = achievements[ach.id];
             if (status === true) status = 'claimed'; 
-            
             let progress = Math.min(ach.getProgress(), ach.max);
-            let isUnlocked = (status === 'unlocked');
-            let isClaimed = (status === 'claimed');
-            
-            let div = document.createElement('div'); 
-            div.className = `achievement-card ${isClaimed ? 'unlocked' : ''}`;
+            let isUnlocked = (status === 'unlocked'); let isClaimed = (status === 'claimed');
+            let div = document.createElement('div'); div.className = `achievement-card ${isClaimed ? 'unlocked' : ''}`;
             
             let actionHtml = '';
-            if (isClaimed) {
-                actionHtml = `<div class="ach-progress" style="margin-top:10px;">✅ CLAIMED</div>`;
-            } else if (isUnlocked) {
+            if (isClaimed) { actionHtml = `<div class="ach-progress" style="margin-top:10px;">✅ CLAIMED</div>`; } 
+            else if (isUnlocked) {
                 let rewardIcon = ach.reward.type === 'tokens' ? '💎' : '💰';
                 actionHtml = `<button class="claim-btn" onclick="claimAchievement('${ach.id}')">CLAIM ${ach.reward.amt} ${rewardIcon}</button>`;
             } else {
                 let percent = (progress / ach.max) * 100;
-                actionHtml = `
-                    <div class="ach-bar-bg">
-                        <div class="ach-bar-fill" style="width: ${percent}%"></div>
-                        <span class="ach-bar-text">${progress} / ${ach.max}</span>
-                    </div>
-                `;
+                actionHtml = `<div class="ach-bar-bg"><div class="ach-bar-fill" style="width: ${percent}%"></div><span class="ach-bar-text">${progress} / ${ach.max}</span></div>`;
             }
 
-            div.innerHTML = `
-                <div class="ach-icon" style="align-self: flex-start; margin-top: 5px;">${isClaimed || isUnlocked ? ach.icon : '🔒'}</div>
-                <div class="ach-info">
-                    <p class="ach-title">${ach.title}</p>
-                    <p class="ach-desc">${ach.desc}</p>
-                    ${actionHtml}
-                </div>
-            `;
+            div.innerHTML = `<div class="ach-icon" style="align-self: flex-start; margin-top: 5px;">${isClaimed || isUnlocked ? ach.icon : '🔒'}</div><div class="ach-info"><p class="ach-title">${ach.title}</p><p class="ach-desc">${ach.desc}</p>${actionHtml}</div>`;
             achContainer.appendChild(div);
         });
     }
@@ -818,10 +850,8 @@ function preloadSkinImages(skinId) {
     let skin = skinData[skinId];
     if (!skin) return;
     for (let i = 1; i <= 6; i++) {
-        const imgP1 = new Image();
-        imgP1.src = `assets/${skin.prefixP1}red-${i}.png`;
-        const imgP2 = new Image();
-        imgP2.src = `assets/${skin.prefixP2}green-${i}.png`;
+        const imgP1 = new Image(); imgP1.src = `assets/${skin.prefixP1}red-${i}.png`;
+        const imgP2 = new Image(); imgP2.src = `assets/${skin.prefixP2}green-${i}.png`;
     }
 }
 
@@ -839,6 +869,6 @@ function initParticles() {
 // --- INITIALIZE GAME ---
 document.getElementById("volume-slider").value = 0.5; 
 adjustVolume(); 
-preloadSkinImages(activeSkin); // Preload current skin immediately!
+preloadSkinImages(activeSkin);
 updateUI(); 
 initParticles();
