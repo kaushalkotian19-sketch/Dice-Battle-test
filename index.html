@@ -14,7 +14,9 @@
     <link rel="stylesheet" href="style.css">
     
     <meta name="monetag" content="022b1ec8f1b2bd0d22c1b578138f3775">
-    <script src="https://quge5.com/88/tag.min.js" data-zone="235168" async data-cfasync="false"></script>
+
+    <script>(function(s){s.dataset.zone='10952071',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script>(function(s){s.dataset.zone='10952087',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 </head>
 <body>
     <div id="particles-container"></div>
@@ -71,7 +73,18 @@
                         <div class="best-score-value">LVL <span id="best-score-num">1</span></div>
                     </div>
                     
-                    <button class="roll-btn" onclick="rollDice()">ROLL DICE</button>
+                    <div class="roll-zone" style="position: relative; width: 90%; max-width: 300px; margin: 20px auto;">
+                        <div id="heat-bar-bg" style="width: 100%; height: 8px; background: #1e293b; border-radius: 4px; margin-bottom: 8px; overflow: hidden; border: 1px solid var(--border);">
+                            <div id="heat-bar-fill" style="width: 0%; height: 100%; background: #fbbf24; transition: width 0.1s linear, background-color 0.3s;"></div>
+                        </div>
+                        
+                        <button id="main-roll-btn" class="roll-btn" onclick="rollDice()" style="width: 100%; margin: 0;">ROLL DICE</button>
+                        
+                        <div id="freeze-overlay" style="display:none; position:absolute; top: 16px; left:0; width:100%; height:calc(100% - 16px); background: rgba(56, 189, 248, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 2px solid #38bdf8; border-radius: 12px; z-index: 10; flex-direction: column; justify-content:center; align-items:center; cursor:pointer;" onclick="breakIce()">
+                            <span style="font-size: 2rem;">🧊</span>
+                            <span id="freeze-taps-text" style="font-size: 1.2rem; font-weight: 900; color: white; text-shadow: 0 0 5px #000;">TAP: 5</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -88,24 +101,10 @@
                 <div class="shop-section glass" style="display: none; border-color: var(--gold); background: rgba(0,0,0,0.6);">
                     <h3 style="color: var(--gold); text-align: center; font-size: 1.2rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">👑 VIP DIAMOND SHOP</h3>
                     <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 15px;">Support the developer & boost your progress!</p>
-                    
                     <div class="premium-store-grid">
-                        <div class="premium-card">
-                            <div class="premium-icon">💎</div>
-                            <div class="premium-title">50 Tokens</div>
-                            <button class="premium-buy-btn" onclick="simulatePurchase(50, '₹89.00')">₹89.00</button>
-                        </div>
-                        <div class="premium-card best-value">
-                            <div class="premium-ribbon">POPULAR</div>
-                            <div class="premium-icon">💎💎</div>
-                            <div class="premium-title">500 Tokens</div>
-                            <button class="premium-buy-btn" onclick="simulatePurchase(500, '₹449.00')">₹449.00</button>
-                        </div>
-                        <div class="premium-card" style="grid-column: span 2;">
-                            <div class="premium-icon" style="font-size: 3.5rem;">👑💎</div>
-                            <div class="premium-title">1500 Tokens</div>
-                            <button class="premium-buy-btn" onclick="simulatePurchase(1500, '₹899.00')">₹899.00</button>
-                        </div>
+                        <div class="premium-card"><button class="premium-buy-btn" onclick="simulatePurchase(50, '₹89.00')">₹89.00</button></div>
+                        <div class="premium-card best-value"><button class="premium-buy-btn" onclick="simulatePurchase(500, '₹449.00')">₹449.00</button></div>
+                        <div class="premium-card" style="grid-column: span 2;"><button class="premium-buy-btn" onclick="simulatePurchase(1500, '₹899.00')">₹899.00</button></div>
                     </div>
                 </div>
                 
@@ -119,9 +118,7 @@
 
                 <div class="shop-section glass" style="display: none; border-color: #a855f7;">
                     <h3 style="color: #a855f7;">💎 FREE DIAMONDS</h3>
-                    <button id="watch-ad-btn" class="up-btn" onclick="showAd()" style="background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: white; margin-top: 10px;">
-                        📺 WATCH AD (+5 💎)
-                    </button>
+                    <button id="watch-ad-btn" class="up-btn" onclick="showAd()">📺 WATCH AD (+5 💎)</button>
                 </div>
 
                 <div class="shop-section glass" style="border-color: #38bdf8;">
