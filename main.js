@@ -50,6 +50,7 @@ let totalWins = Number(localStorage.getItem("totalWins")) || 0;
 let highestLevel = Number(localStorage.getItem("highestLevel")) || 1;
 let prestigeCount = Number(localStorage.getItem("prestigeCount")) || 0;
 let pastRuns = JSON.parse(localStorage.getItem("pastRuns")) || [];
+let lastLeaderboardFetch = 0; // Tracks the 5-minute cooldown
 
 let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
 let upgrades = { hp: savedUpgrades.hp || 100, luck: savedUpgrades.luck || 0, mult: savedUpgrades.mult || 1 };
@@ -61,6 +62,11 @@ let cooldowns = JSON.parse(localStorage.getItem("cooldowns")) || { heal: 0, doub
 let buffs = JSON.parse(localStorage.getItem("buffs")) || { doubleDamage: false };
 
 let isMuted = localStorage.getItem("gameMuted") === "true";
+
+// --- REFERRAL (SHARE) STATE ---
+let dailySharesCount = Number(localStorage.getItem("dailySharesCount")) || 0;
+let lastShareDate = localStorage.getItem("lastShareDate") || "";
+const MAX_DAILY_SHARES = 10;
 
 // --- COMBAT OBSTACLE STATE ---
 let heatLevel = 0;
@@ -259,7 +265,7 @@ function updateMissionProgress(actionType, amount = 1) {
     }
 }
 
-// --- AD SIMULATOR LOGIC (HIDDEN IN UI, KEPT FOR ECONOMY) ---
+// --- AD SIMULATOR LOGIC ---
 let adInterval;
 window.showAd = function() {
     const today = new Date().toDateString();
@@ -286,7 +292,7 @@ window.closeAd = function() {
     if(!isMuted) sounds.pulse.play().catch(() => {}); updateUI();
 }
 
-// --- MYSTERY BOX (GACHA) LOGIC ---
+// --- MYSTERY BOX LOGIC ---
 window.openMysteryBox = function() {
     const today = new Date().toDateString();
     if (lastChestDate !== today) { dailyChestsOpened = 0; lastChestDate = today; }
@@ -350,26 +356,52 @@ const buffTypes = [
 function spawnBattleBuff() {
     const existing = document.querySelector('.battle-buff'); 
     if (existing) existing.remove();
-    if (Math.random() * 100 > 15) return;
     
     const arena = document.querySelector('.battle-arena'); 
     if (!arena) return;
     arena.style.position = 'relative';
 
-    const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
-    const buffEl = document.createElement('div');
-    buffEl.className = 'battle-buff'; buffEl.textContent = buff.icon;
-    
-    let offset = Math.floor(Math.random() * 40) - 20; 
-    buffEl.style.left = `calc(50% - 20px + ${offset}px)`; buffEl.style.top = '-15px'; 
+    const rand = Math.random() * 100;
 
-    buffEl.onclick = () => {
-        nextRollBuff = buff.id; 
-        if(!isMuted) sounds.win.play().catch(() => {});
-        createDamagePop(`${buff.text} ACTIVE!`, 'p1-img', buff.color, true);
-        buffEl.remove(); 
-    };
-    arena.appendChild(buffEl);
+    // 💎 VERY RARE: 3% Chance to spawn a floating Diamond
+    if (rand <= 3) {
+        const buffEl = document.createElement('div');
+        buffEl.className = 'battle-buff'; 
+        buffEl.textContent = '💎';
+        
+        let offset = Math.floor(Math.random() * 40) - 20; 
+        buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
+        buffEl.style.top = '-15px'; 
+
+        buffEl.onclick = () => {
+            let diamondAmount = Math.random() > 0.5 ? 2 : 1; 
+            tokens += diamondAmount;
+            if(!isMuted) sounds.win.play().catch(() => {});
+            createDamagePop(`+${diamondAmount} 💎`, 'p1-img', '#a855f7', true);
+            buffEl.remove(); 
+            updateUI(); 
+        };
+        arena.appendChild(buffEl);
+    }
+    // 🛡️ NORMAL: 15% Chance to spawn a combat buff
+    else if (rand <= 18) {
+        const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
+        const buffEl = document.createElement('div');
+        buffEl.className = 'battle-buff'; 
+        buffEl.textContent = buff.icon;
+        
+        let offset = Math.floor(Math.random() * 40) - 20; 
+        buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
+        buffEl.style.top = '-15px'; 
+
+        buffEl.onclick = () => {
+            nextRollBuff = buff.id; 
+            if(!isMuted) sounds.win.play().catch(() => {});
+            createDamagePop(`${buff.text} ACTIVE!`, 'p1-img', buff.color, true);
+            buffEl.remove(); 
+        };
+        arena.appendChild(buffEl);
+    }
 }
 
 // --- 🌍 GLOBAL LEADERBOARD LOGIC ---
@@ -419,6 +451,16 @@ window.showTab = function(tabId) {
     else { nav.style.display = 'flex'; wallet.style.display = 'flex'; }
 }
 
+window.openGuide = function() {
+    document.getElementById('guide-modal').style.display = 'flex';
+    if(!isMuted) sounds.pulse.play().catch(()=>{});
+}
+
+window.closeGuide = function() {
+    document.getElementById('guide-modal').style.display = 'none';
+    if(!isMuted) sounds.win.play().catch(()=>{});
+}
+
 window.savePlayerName = function() {
     const input = document.getElementById('player-name-input').value.trim();
     if (input.length > 0 && input.length <= 12) {
@@ -433,9 +475,41 @@ window.switchLeaderboard = function(type) {
     document.getElementById(`tab-${type}`).classList.add('active');
     
     if (type === 'global') {
-        document.getElementById('top-runs-container').innerHTML = '<p style="text-align:center; color:var(--gold); font-weight:bold; margin-top: 20px;">📡 Fetching from Cloud...</p>';
-        fetchGlobalLeaderboard(); 
+        const now = Date.now();
+        if (now - lastLeaderboardFetch > 300000) { // 5 Minute Cooldown
+            document.getElementById('top-runs-container').innerHTML = '<p style="text-align:center; color:var(--gold); font-weight:bold; margin-top: 20px;">📡 Fetching from Cloud...</p>';
+            fetchGlobalLeaderboard().then(() => {
+                lastLeaderboardFetch = Date.now(); 
+            });
+        }
     } else { updateUI(); }
+}
+
+window.shareGame = async function() {
+    const today = new Date().toDateString();
+    if (lastShareDate !== today) { dailySharesCount = 0; lastShareDate = today; }
+
+    if (dailySharesCount >= MAX_DAILY_SHARES) { alert(`You have reached the limit of ${MAX_DAILY_SHARES} invites today! Come back tomorrow.`); return; }
+
+    const shareData = { title: 'Dice Battle Elite', text: `I reached Level ${highestLevel} in Dice Battle Elite! Play now:`, url: 'https://dicebattle.online' };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+            rewardShare();
+        } else {
+            navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+            alert("Link copied to clipboard! Paste it to a friend.");
+            rewardShare();
+        }
+    } catch (err) { console.log("Share cancelled", err); }
+}
+
+function rewardShare() {
+    tokens += 1; dailySharesCount++;
+    if (!isMuted) sounds.pulse.play().catch(() => {});
+    alert(`Thanks for sharing! You earned 1 💎. (${MAX_DAILY_SHARES - dailySharesCount} invites left today)`);
+    updateUI();
 }
 
 window.useSkill = function(type) {
@@ -461,7 +535,7 @@ window.rollDice = function() {
         return; 
     }
 
-    // 2. PARRY (COUNTER-ATTACK) INTERCEPT
+    // 2. PARRY INTERCEPT
     if (bossParryActive) {
         bossParryActive = false;
         document.getElementById('enemy-name').classList.remove('parry-warning');
@@ -552,7 +626,7 @@ window.rollDice = function() {
         
         nextRollBuff = null; 
         checkBattleStatus(); 
-        triggerBossObstacles(); // Fire obstacles after the roll resolves
+        triggerBossObstacles(); 
         checkAchievements(); 
         updateUI(); 
         spawnBattleBuff();
@@ -564,12 +638,26 @@ window.rollDice = function() {
 function checkBattleStatus() {
     if (p2HP <= 0) {
         if(!isMuted) sounds.win.play().catch(() => {});
-        if (level % 10 === 0) { tokens += 25; coins += (100 * upgrades.mult); stats.bossesDefeated++; updateMissionProgress('boss'); } 
-        else { tokens += 5; }
-        totalWins++; level++; if (level > highestLevel) highestLevel = level;
-        if (level % 10 === 0) triggerBossFlash();
+        
+        let isBossDefeated = (level % 10 === 0);
+        
+        if (isBossDefeated) { 
+            tokens += 25; 
+            coins += (100 * upgrades.mult); 
+            stats.bossesDefeated++; 
+            updateMissionProgress('boss'); 
+        } 
+        
+        totalWins++; level++; 
+        if (level > highestLevel) highestLevel = level;
+        
+        if (isBossDefeated) { 
+            triggerBossFlash();
+            syncToCloud(); 
+        }
+        
         p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp; 
-        syncToCloud(); 
+        
     } else if (p1HP <= 0) {
         if(!isMuted) sounds.lose.play().catch(() => {});
         p1HP = upgrades.hp; p2HP = getEnemyMaxHP(level);
@@ -594,7 +682,6 @@ window.breakIce = function() {
 }
 
 window.triggerBossObstacles = function() {
-    // 1. Parry Stance (15% chance if level > 10)
     if (level >= 10 && Math.random() < 0.15 && !bossParryActive) {
         bossParryActive = true;
         if(!isMuted) sounds.ping.play().catch(()=>{});
@@ -606,7 +693,6 @@ window.triggerBossObstacles = function() {
             }
         }, 2000); 
     }
-    // 2. Freeze Minigame (15% chance if level > 20)
     if (level >= 20 && Math.random() < 0.15 && !bossParryActive) {
         freezeTapsLeft = 5;
         const overlay = document.getElementById('freeze-overlay');
@@ -614,7 +700,6 @@ window.triggerBossObstacles = function() {
         document.getElementById('freeze-taps-text').innerText = `TAP: ${freezeTapsLeft}`;
         if(!isMuted) sounds.pulse.play().catch(()=>{});
     }
-    // 3. Burn (10% chance if level > 30)
     if (level >= 30 && Math.random() < 0.10) {
         burnTurnsLeft = 3; createDamagePop("IGNITED!", 'p1-img', '#f97316', true);
     }
@@ -637,7 +722,7 @@ window.exchangeCurrency = function(diamondCost, coinReward) {
         tokens -= diamondCost; coins += coinReward;
         if(!isMuted) sounds.win.play().catch(() => {});
         createDamagePop(`+${coinReward} 💰`, 'p1-img', '#fbbf24', false); updateUI();
-    } else { alert("Not enough Diamonds! Defeat Bosses or watch Ads to earn more."); }
+    } else { alert("Not enough Diamonds! Defeat Bosses or share to earn more."); }
 }
 
 window.buySkin = function(skinId, cost) {
@@ -749,6 +834,17 @@ function updateUI() {
         if (currentAdCount >= MAX_DAILY_ADS) { adBtn.innerHTML = `📺 COME BACK TOMORROW`; adBtn.style.opacity = '0.5'; } 
         else { adBtn.innerHTML = `📺 WATCH AD (+5 💎) [${MAX_DAILY_ADS - currentAdCount} LEFT]`; adBtn.style.opacity = '1'; }
     }
+    
+    const shareBtn = document.getElementById('share-game-btn');
+    if (shareBtn) {
+        const today = new Date().toDateString();
+        let currentShareCount = (lastShareDate === today) ? dailySharesCount : 0;
+        if (currentShareCount >= MAX_DAILY_SHARES) {
+            shareBtn.innerHTML = `📢 COME BACK TOMORROW`; shareBtn.style.opacity = '0.5';
+        } else {
+            shareBtn.innerHTML = `📢 INVITE FRIENDS (+1 💎) [${MAX_DAILY_SHARES - currentShareCount} LEFT]`; shareBtn.style.opacity = '1';
+        }
+    }
 
     const ribbon = document.getElementById('skin-ribbon');
     if (ribbon) {
@@ -843,6 +939,8 @@ function saveData() {
     localStorage.setItem("lastAdDate", lastAdDate);
     localStorage.setItem("dailyChestsOpened", dailyChestsOpened);
     localStorage.setItem("lastChestDate", lastChestDate);
+    localStorage.setItem("dailySharesCount", dailySharesCount);
+    localStorage.setItem("lastShareDate", lastShareDate);
 }
 
 // --- IMAGE PRELOADER ---
