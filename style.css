@@ -31,14 +31,7 @@ body.env-volcano { --bg-gradient: radial-gradient(circle at top, #7f1d1d 0%, #02
 
 /* GLASS & LAYOUT */
 .glass { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 16px; margin: 15px; padding: 20px; }
-
-/* The Magic Scroll Fix */
-.main-scroll-area { 
-    height: 100%; 
-    overflow-y: auto; 
-    padding-bottom: 160px; /* Gives plenty of space above the nav bars! */
-    box-sizing: border-box; 
-}
+.main-scroll-area { height: 100%; overflow-y: auto; padding-bottom: 160px; box-sizing: border-box; }
 
 /* ARENA */
 .player-info { text-align: center; margin-top: 15px; }
@@ -123,7 +116,6 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 0; }
 .ach-desc { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin: 5px 0 0 0; }
 .ach-progress { font-size: 0.9rem; color: var(--gold); font-weight: bold; text-align: right; }
 
-/* --- CLAIMABLE ACHIEVEMENTS --- */
 .claim-btn { background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); border: none; border-radius: 8px; color: #000; font-weight: 900; padding: 10px; margin-top: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4); animation: pulseGlow 1.5s infinite; text-transform: uppercase; }
 .claim-btn:active { transform: scale(0.95); }
 .ach-bar-bg { background: #1e293b; border-radius: 8px; height: 18px; width: 100%; margin-top: 10px; position: relative; overflow: hidden; border: 1px solid var(--border); }
@@ -166,7 +158,7 @@ body.boss-mode { --bg-gradient: radial-gradient(circle at top, #450a0a 0%, #0206
 .battle-buff:active { transform: scale(0.8); }
 @keyframes gentleFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
 
-/* --- DYNAMIC ENVIRONMENTS 2.0 (PARTICLES) --- */
+/* --- DYNAMIC ENVIRONMENTS (PARTICLES) --- */
 #particles-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
 .particle { position: absolute; border-radius: 50%; opacity: 0; }
 body.env-forest .particle { width: 6px; height: 6px; background: #4ade80; animation: fallDown linear infinite; }
@@ -182,25 +174,15 @@ body.env-dungeon .particle { width: 4px; height: 4px; background: rgba(255,255,2
 @keyframes driftDust { 0% { transform: translateY(0) translateX(0); opacity: 0; } 50% { opacity: 0.4; transform: translateY(-30px) translateX(20px); } 100% { transform: translateY(-60px) translateX(-20px); opacity: 0; } }
 
 /* --- PLAYER PROFILE & LEADERBOARD TABS --- */
-.glass-input { 
-    width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); 
-    color: white; padding: 15px; border-radius: 8px; font-weight: 900; 
-    margin-bottom: 10px; text-align: center; letter-spacing: 2px; text-transform: uppercase;
-}
-.glass-input:focus { 
-    outline: none; border-color: var(--gold); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); 
-}
+.glass-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 8px; font-weight: 900; margin-bottom: 10px; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+.glass-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+.leaderboard-tabs { display: flex; gap: 10px; margin: 15px 15px 5px 15px; }
+.lb-tab { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: rgba(255,255,255,0.5); font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; letter-spacing: 1px; }
+.lb-tab.active { background: rgba(251, 191, 36, 0.15); border-color: var(--gold); color: var(--gold); text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
 
-.leaderboard-tabs { 
-    display: flex; gap: 10px; margin: 15px 15px 5px 15px; 
-}
-.lb-tab { 
-    flex: 1; padding: 12px; background: rgba(255,255,255,0.05); 
-    border: 1px solid var(--border); color: rgba(255,255,255,0.5); 
-    font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.3s; 
-    font-size: 0.85rem; letter-spacing: 1px;
-}
-.lb-tab.active { 
-    background: rgba(251, 191, 36, 0.15); border-color: var(--gold); 
-    color: var(--gold); text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); 
-}
+/* --- COMBAT OBSTACLE STYLES --- */
+.parry-warning { color: #ef4444 !important; text-shadow: 0 0 15px #ef4444 !important; animation: parryFlash 0.3s infinite alternate; }
+@keyframes parryFlash { from { transform: scale(1); filter: brightness(1); } to { transform: scale(1.1); filter: brightness(1.5); } }
+.heat-warning { background: #ef4444 !important; box-shadow: 0 0 15px #ef4444 !important; }
+.btn-jammed { background: #475569 !important; color: #94a3b8 !important; box-shadow: none !important; border-color: #ef4444; }
+.shatter-text { font-size: 2rem !important; text-shadow: 0 0 15px #38bdf8, 0 0 5px #ffffff; z-index: 999; }
