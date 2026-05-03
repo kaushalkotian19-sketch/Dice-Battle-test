@@ -168,6 +168,9 @@
                     <h3>🔊 SYSTEM VOLUME</h3>
                     <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume()">
                     <button id="mute-btn" class="glass-btn" style="margin-top: 10px;" onclick="toggleMute()">🔊 Sound On</button>
+                    <button id="noti-btn" class="glass-btn" style="margin-top: 10px; border-color: #f59e0b; color: #f59e0b;" onclick="requestNotificationPermission()">
+                        🔔 ENABLE ALERTS (+10 💎)
+                    </button>
                     <button class="glass-btn" style="margin-top: 10px; border-color: #38bdf8; color: #38bdf8;" onclick="openGuide()">📖 GAME GUIDE</button>
                     <button class="prestige-btn" style="margin-top: 10px;" onclick="handlePrestige()">PRESTIGE (LVL 50)</button>
                 </div>
