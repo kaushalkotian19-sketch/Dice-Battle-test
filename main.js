@@ -7,6 +7,7 @@ if ('serviceWorker' in navigator) {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDBi43PAlEbRssq_VPAS-ZTvC48ASI2yuE",
@@ -31,6 +32,49 @@ onAuthStateChanged(auth, (user) => {
         syncToCloud(); 
     }
 });
+
+// --- FIREBASE CLOUD MESSAGING SETUP ---
+const messaging = getMessaging(app);
+let notificationsEnabled = localStorage.getItem("notificationsEnabled") === "true";
+
+window.requestNotificationPermission = async function() {
+    if (notificationsEnabled) {
+        showCustomAlert("Alerts are already enabled!", "🔔 NOTIFICATIONS ACTIVE");
+        return;
+    }
+
+    try {
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            const currentToken = await getToken(messaging, { 
+                vapidKey: 'BBdRdaNHhRFYY92juf2I-z5tqJmDRtQFDA4AhTGb56XGYwvF8MZ0Q3UQ6NkdzPx8XNoIJ_uxVQFmvn98Hopu8Qk' 
+            });
+            
+            if (currentToken) {
+                console.log("Device Token:", currentToken);
+                notificationsEnabled = true;
+                localStorage.setItem("notificationsEnabled", "true");
+                
+                tokens += 10;
+                if(!isMuted) sounds.win.play().catch(()=>{});
+                showCustomAlert("Notifications Enabled! You received 10 💎.", "🔔 ALERTS ACTIVE");
+                
+                document.getElementById('noti-btn').style.display = 'none';
+                updateUI();
+                
+                if (playerUID) {
+                    await setDoc(doc(db, "leaderboard", playerUID), { fcmToken: currentToken }, { merge: true });
+                }
+            }
+        } else {
+            showCustomAlert("You blocked notifications. You can change this in your browser settings.", "⚠️ PERMISSION DENIED");
+        }
+    } catch (error) {
+        console.error('An error occurred while retrieving token. ', error);
+        showCustomAlert("Could not enable notifications. Try again later.", "⚠️ SYSTEM ERROR");
+    }
+}
 
 
 // --- GAME STATE ---
@@ -879,6 +923,11 @@ function updateUI() {
             shareBtn.innerHTML = `📢 INVITE FRIENDS (+1 💎) [${MAX_DAILY_SHARES - currentShareCount} LEFT]`; shareBtn.style.opacity = '1';
         }
     }
+    
+    const notiBtn = document.getElementById('noti-btn');
+    if (notiBtn && notificationsEnabled) {
+        notiBtn.style.display = 'none';
+    }
 
     const ribbon = document.getElementById('skin-ribbon');
     if (ribbon) {
@@ -975,6 +1024,7 @@ function saveData() {
     localStorage.setItem("lastChestDate", lastChestDate);
     localStorage.setItem("dailySharesCount", dailySharesCount);
     localStorage.setItem("lastShareDate", lastShareDate);
+    localStorage.setItem("notificationsEnabled", notificationsEnabled);
 }
 
 // --- IMAGE PRELOADER ---
