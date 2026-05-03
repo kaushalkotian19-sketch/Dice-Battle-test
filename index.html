@@ -275,6 +275,14 @@
             </div>
         </div>
 
+        <div id="custom-alert-modal" class="modal-overlay" style="display: none; z-index: 5000;">
+            <div class="modal-content glass" style="border-color: #fbbf24; max-width: 300px; padding: 25px 20px;">
+                <h2 id="custom-alert-title" style="color: #fbbf24; font-size: 1.3rem; margin-top: 0; letter-spacing: 1px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">⚠️ SYSTEM ALERT</h2>
+                <p id="custom-alert-text" style="color: rgba(255,255,255,0.9); font-size: 1rem; line-height: 1.5; margin-bottom: 25px; font-weight: bold;">Error message goes here.</p>
+                <button class="enter-btn" onclick="closeCustomAlert()" style="width: 100%; margin: 0; padding: 12px; font-size: 1rem;">OKAY</button>
+            </div>
+        </div>
+
     </div>
     
     <script type="module" src="main.js"></script>
