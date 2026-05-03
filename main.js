@@ -50,7 +50,7 @@ let totalWins = Number(localStorage.getItem("totalWins")) || 0;
 let highestLevel = Number(localStorage.getItem("highestLevel")) || 1;
 let prestigeCount = Number(localStorage.getItem("prestigeCount")) || 0;
 let pastRuns = JSON.parse(localStorage.getItem("pastRuns")) || [];
-let lastLeaderboardFetch = 0; // Tracks the 5-minute cooldown
+let lastLeaderboardFetch = 0; 
 
 let savedUpgrades = JSON.parse(localStorage.getItem("upgrades")) || {};
 let upgrades = { hp: savedUpgrades.hp || 100, luck: savedUpgrades.luck || 0, mult: savedUpgrades.mult || 1 };
@@ -195,6 +195,20 @@ function triggerBossFlash() {
     document.body.appendChild(flash); setTimeout(() => flash.remove(), 1000);
 }
 
+// --- CUSTOM MODAL FUNCTION ---
+window.showCustomAlert = function(message, title = "⚠️ SYSTEM ALERT") {
+    document.getElementById('custom-alert-title').innerText = title;
+    document.getElementById('custom-alert-text').innerText = message;
+    document.getElementById('custom-alert-modal').style.display = 'flex';
+    
+    if(!isMuted) { sounds.pulse.currentTime = 0; sounds.pulse.play().catch(()=>{}); }
+}
+
+window.closeCustomAlert = function() {
+    document.getElementById('custom-alert-modal').style.display = 'none';
+}
+
+
 // --- DAILY REWARDS LOGIC ---
 function checkDailyReward() {
     const today = new Date().toDateString(); 
@@ -242,7 +256,7 @@ window.claimAchievement = function(id) {
         if (ach.reward.type === 'tokens') { tokens += ach.reward.amt; } 
         else { coins += ach.reward.amt; }
         if(!isMuted) sounds.win.play().catch(() => {});
-        alert(`🏆 You claimed ${ach.reward.amt} ${ach.reward.type === 'tokens' ? '💎' : '💰'}!`);
+        showCustomAlert(`You claimed ${ach.reward.amt} ${ach.reward.type === 'tokens' ? '💎' : '💰'}!`, "🏆 ACHIEVEMENT UNLOCKED");
         updateUI();
     }
 }
@@ -256,7 +270,7 @@ function updateMissionProgress(actionType, amount = 1) {
             stats.missionsCompleted++; 
             if(!isMuted) sounds.win.play().catch(() => {});
             createDamagePop("MISSION COMPLETE!", 'p1-img', '#3b82f6', true);
-            alert(`📜 MISSION COMPLETE! Your Coin Multiplier is now ${upgrades.mult}x!`);
+            showCustomAlert(`Your Coin Multiplier is now ${upgrades.mult}x!`, "📜 MISSION COMPLETE");
             let nextMission = missionPool[Math.floor(Math.random() * missionPool.length)];
             currentMission = { ...nextMission, progress: 0 };
             checkAchievements(); 
@@ -270,7 +284,10 @@ let adInterval;
 window.showAd = function() {
     const today = new Date().toDateString();
     if (lastAdDate !== today) { dailyAdsWatched = 0; lastAdDate = today; }
-    if (dailyAdsWatched >= MAX_DAILY_ADS) { alert(`Check back tomorrow.`); return; }
+    if (dailyAdsWatched >= MAX_DAILY_ADS) { 
+        showCustomAlert("Check back tomorrow.", "📺 AD LIMIT REACHED"); 
+        return; 
+    }
     document.getElementById('ad-modal').style.display = 'flex'; 
     document.getElementById('ad-close-btn').style.display = 'none';
     let timeLeft = 5; 
@@ -296,10 +313,16 @@ window.closeAd = function() {
 window.openMysteryBox = function() {
     const today = new Date().toDateString();
     if (lastChestDate !== today) { dailyChestsOpened = 0; lastChestDate = today; }
-    if (dailyChestsOpened >= MAX_DAILY_CHESTS) { alert(`You have opened all ${MAX_DAILY_CHESTS} chests today!`); return; }
+    if (dailyChestsOpened >= MAX_DAILY_CHESTS) { 
+        showCustomAlert(`You have opened all ${MAX_DAILY_CHESTS} chests today!`, "🎁 CHEST LIMIT REACHED"); 
+        return; 
+    }
 
     const cost = 2000;
-    if (coins < cost) { alert("Not enough coins! Keep battling."); return; }
+    if (coins < cost) { 
+        showCustomAlert("Not enough coins! Keep battling.", "💰 INSUFFICIENT FUNDS"); 
+        return; 
+    }
     
     coins -= cost; dailyChestsOpened++; updateUI();
 
@@ -466,8 +489,11 @@ window.savePlayerName = function() {
     if (input.length > 0 && input.length <= 12) {
         playerName = input.toUpperCase(); localStorage.setItem("playerName", playerName);
         if(!isMuted) sounds.win.play().catch(() => {});
-        alert(`Name securely saved as: ${playerName}`); syncToCloud(); updateUI();
-    } else { alert("Please enter a valid name (1-12 characters)."); }
+        showCustomAlert(`Name securely saved as: ${playerName}`, "👤 PROFILE UPDATED"); 
+        syncToCloud(); updateUI();
+    } else { 
+        showCustomAlert("Please enter a valid name (1-12 characters).", "⚠️ INVALID NAME"); 
+    }
 }
 
 window.switchLeaderboard = function(type) {
@@ -489,7 +515,10 @@ window.shareGame = async function() {
     const today = new Date().toDateString();
     if (lastShareDate !== today) { dailySharesCount = 0; lastShareDate = today; }
 
-    if (dailySharesCount >= MAX_DAILY_SHARES) { alert(`You have reached the limit of ${MAX_DAILY_SHARES} invites today! Come back tomorrow.`); return; }
+    if (dailySharesCount >= MAX_DAILY_SHARES) { 
+        showCustomAlert(`You have reached the limit of ${MAX_DAILY_SHARES} invites today! Come back tomorrow.`, "📢 INVITE LIMIT REACHED"); 
+        return; 
+    }
 
     const shareData = { title: 'Dice Battle Elite', text: `I reached Level ${highestLevel} in Dice Battle Elite! Play now:`, url: 'https://dicebattle.online' };
 
@@ -499,7 +528,7 @@ window.shareGame = async function() {
             rewardShare();
         } else {
             navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-            alert("Link copied to clipboard! Paste it to a friend.");
+            showCustomAlert("Link copied to clipboard! Paste it to a friend.", "🔗 LINK COPIED");
             rewardShare();
         }
     } catch (err) { console.log("Share cancelled", err); }
@@ -508,7 +537,7 @@ window.shareGame = async function() {
 function rewardShare() {
     tokens += 1; dailySharesCount++;
     if (!isMuted) sounds.pulse.play().catch(() => {});
-    alert(`Thanks for sharing! You earned 1 💎. (${MAX_DAILY_SHARES - dailySharesCount} invites left today)`);
+    showCustomAlert(`Thanks for sharing! You earned 1 💎.\n(${MAX_DAILY_SHARES - dailySharesCount} invites left today)`, "💎 REWARD GRANTED");
     updateUI();
 }
 
@@ -712,7 +741,8 @@ window.simulatePurchase = function(tokenAmount, priceStr) {
             tokens += tokenAmount;
             if(!isMuted) sounds.pulse.play().catch(() => {});
             document.body.classList.add('violent-shake'); setTimeout(() => document.body.classList.remove('violent-shake'), 500);
-            alert(`🎉 PAYMENT SUCCESSFUL!\n\nThank you for supporting the game! You received ${tokenAmount} 💎.`); updateUI();
+            showCustomAlert(`Thank you for supporting the game! You received ${tokenAmount} 💎.`, "🎉 PURCHASE SUCCESSFUL");
+            updateUI();
         }, 800);
     }
 }
@@ -722,7 +752,9 @@ window.exchangeCurrency = function(diamondCost, coinReward) {
         tokens -= diamondCost; coins += coinReward;
         if(!isMuted) sounds.win.play().catch(() => {});
         createDamagePop(`+${coinReward} 💰`, 'p1-img', '#fbbf24', false); updateUI();
-    } else { alert("Not enough Diamonds! Defeat Bosses or share to earn more."); }
+    } else { 
+        showCustomAlert("Not enough Diamonds! Defeat Bosses or share to earn more.", "💎 INSUFFICIENT DIAMONDS"); 
+    }
 }
 
 window.buySkin = function(skinId, cost) {
@@ -747,8 +779,10 @@ window.handlePrestige = function() {
         pastRuns.push({ level: highestLevel, prestige: prestigeCount });
         prestigeCount++; level = 1; highestLevel = 1; coins = 0; p2HP = getEnemyMaxHP(level); p1HP = upgrades.hp;
         syncToCloud(); updateUI(); 
-        alert("PRESTIGE ACTIVATED! Your run has been saved to the Hall of Fame. Restarting at Level 1...");
-    } else { alert("You must reach Level 50 to Prestige!"); }
+        showCustomAlert("Your run has been saved to the Hall of Fame. Restarting at Level 1...", "⭐ PRESTIGE ACTIVATED");
+    } else { 
+        showCustomAlert("You must reach Level 50 to Prestige!", "🔒 PRESTIGE LOCKED"); 
+    }
 }
 
 window.toggleMute = function() { 
