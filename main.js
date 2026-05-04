@@ -424,51 +424,73 @@ function spawnBattleBuff() {
     const existing = document.querySelector('.battle-buff'); 
     if (existing) existing.remove();
     
-    const arena = document.querySelector('.battle-arena'); 
-    if (!arena) return;
-    arena.style.position = 'relative';
+    // Attach to the skills grid so it floats exactly between/above the Heal & DMG buttons
+    const targetArea = document.querySelector('.skills-grid'); 
+    if (!targetArea) return;
+    targetArea.style.position = 'relative';
 
     const rand = Math.random() * 100;
 
-    // 💎 VERY RARE: 3% Chance to spawn a floating Diamond
-    if (rand <= 3) {
-        const buffEl = document.createElement('div');
-        buffEl.className = 'battle-buff'; 
-        buffEl.textContent = '💎';
-        
-        let offset = Math.floor(Math.random() * 40) - 20; 
-        buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
-        buffEl.style.top = '-15px'; 
+    // 48% chance that nothing spawns this turn
+    if (rand > 52) return; 
 
+    const buffEl = document.createElement('div');
+    buffEl.className = 'battle-buff'; 
+    
+    // Position it dead center above the skill buttons with a tiny random offset
+    let offset = Math.floor(Math.random() * 20) - 10; 
+    buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
+    buffEl.style.top = '-45px'; 
+
+    // 🪙 30% CHANCE: BONUS COIN
+    if (rand <= 30) {
+        buffEl.textContent = '🪙';
         buffEl.onclick = () => {
-            let diamondAmount = Math.random() > 0.5 ? 2 : 1; 
-            tokens += diamondAmount;
+            coins += 12; 
             if(!isMuted) sounds.win.play().catch(() => {});
-            createDamagePop(`+${diamondAmount} 💎`, 'p1-img', '#a855f7', true);
+            createDamagePop(`+12 💰`, 'main-roll-btn', '#fbbf24', true);
             buffEl.remove(); 
             updateUI(); 
         };
-        arena.appendChild(buffEl);
-    }
-    // 🛡️ NORMAL: 15% Chance to spawn a combat buff
-    else if (rand <= 18) {
+    } 
+    // 🛡️ 12% CHANCE: COMBAT BUFFS (31 to 42)
+    else if (rand <= 42) {
         const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
-        const buffEl = document.createElement('div');
-        buffEl.className = 'battle-buff'; 
         buffEl.textContent = buff.icon;
-        
-        let offset = Math.floor(Math.random() * 40) - 20; 
-        buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
-        buffEl.style.top = '-15px'; 
-
         buffEl.onclick = () => {
             nextRollBuff = buff.id; 
             if(!isMuted) sounds.win.play().catch(() => {});
-            createDamagePop(`${buff.text} ACTIVE!`, 'p1-img', buff.color, true);
+            createDamagePop(`${buff.text} ACTIVE!`, 'main-roll-btn', buff.color, true);
             buffEl.remove(); 
         };
-        arena.appendChild(buffEl);
+    } 
+    // 💣 7% CHANCE: THE BOMB TRAP! (43 to 49)
+    else if (rand <= 49) {
+        buffEl.textContent = '💣';
+        buffEl.onclick = () => {
+            coins = Math.max(0, coins - 15); 
+            if(!isMuted) sounds.shatter.play().catch(()=>{}); 
+            document.body.classList.add('violent-shake'); 
+            setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+            createDamagePop(`-15 💰`, 'main-roll-btn', '#ef4444', true);
+            buffEl.remove(); 
+            updateUI(); 
+        };
+    } 
+    // 💎 3% CHANCE: DIAMOND JACKPOT (50 to 52)
+    else if (rand <= 52) {
+        buffEl.textContent = '💎';
+        buffEl.onclick = () => {
+            let diamondAmount = Math.random() > 0.5 ? 2 : 1; 
+            tokens += diamondAmount;
+            if(!isMuted) sounds.pulse.play().catch(() => {});
+            createDamagePop(`+${diamondAmount} 💎`, 'main-roll-btn', '#a855f7', true);
+            buffEl.remove(); 
+            updateUI(); 
+        };
     }
+
+    targetArea.appendChild(buffEl);
 }
 
 // --- 🌍 GLOBAL LEADERBOARD LOGIC ---
@@ -680,7 +702,7 @@ window.rollDice = function() {
             if (nextRollBuff === 'strike') { dmg *= 2; }
             
             p2HP -= dmg;
-            let earnedCoins = (10 * upgrades.mult); if (nextRollBuff === 'magnet') { earnedCoins *= 2; }
+            let earnedCoins = (4 * upgrades.mult); if (nextRollBuff === 'magnet') { earnedCoins *= 2; }
             coins += earnedCoins;
 
             if (isCrit) {
