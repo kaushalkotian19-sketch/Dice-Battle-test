@@ -424,7 +424,6 @@ function spawnBattleBuff() {
     const existing = document.querySelector('.battle-buff'); 
     if (existing) existing.remove();
     
-    // Attach to the skills grid so it floats exactly between/above the Heal & DMG buttons
     const targetArea = document.querySelector('.skills-grid'); 
     if (!targetArea) return;
     targetArea.style.position = 'relative';
@@ -437,24 +436,47 @@ function spawnBattleBuff() {
     const buffEl = document.createElement('div');
     buffEl.className = 'battle-buff'; 
     
-    // Position it dead center above the skill buttons with a tiny random offset
     let offset = Math.floor(Math.random() * 20) - 10; 
     buffEl.style.left = `calc(50% - 20px + ${offset}px)`; 
     buffEl.style.top = '-45px'; 
 
-    // 🪙 30% CHANCE: BONUS COIN
-    if (rand <= 30) {
+    // 🎰 37% CHANCE: THE ROULETTE (Coin vs Bomb)
+    if (rand <= 37) {
         buffEl.textContent = '🪙';
+        buffEl.dataset.type = 'coin'; // Tracks what is currently showing
+
+        // The timer that swaps the icon every 800ms
+        let toggleTimer = setInterval(() => {
+            if (buffEl.dataset.type === 'coin') {
+                buffEl.textContent = '💣';
+                buffEl.dataset.type = 'bomb';
+            } else {
+                buffEl.textContent = '🪙';
+                buffEl.dataset.type = 'coin';
+            }
+        }, 800); 
+
         buffEl.onclick = () => {
-            coins += 12; 
-            if(!isMuted) sounds.win.play().catch(() => {});
-            createDamagePop(`+12 💰`, 'main-roll-btn', '#fbbf24', true);
+            clearInterval(toggleTimer); // Stop the flashing when clicked
+            
+            if (buffEl.dataset.type === 'coin') {
+                coins += 12; 
+                if(!isMuted) sounds.win.play().catch(() => {});
+                createDamagePop(`+12 💰`, 'main-roll-btn', '#fbbf24', true);
+            } else {
+                coins = Math.max(0, coins - 16); // The -16 Trap!
+                if(!isMuted) sounds.shatter.play().catch(()=>{}); 
+                document.body.classList.add('violent-shake'); 
+                setTimeout(() => document.body.classList.remove('violent-shake'), 500);
+                createDamagePop(`-16 💰`, 'main-roll-btn', '#ef4444', true);
+            }
+            
             buffEl.remove(); 
             updateUI(); 
         };
     } 
-    // 🛡️ 12% CHANCE: COMBAT BUFFS (31 to 42)
-    else if (rand <= 42) {
+    // 🛡️ 12% CHANCE: COMBAT BUFFS (38 to 49)
+    else if (rand <= 49) {
         const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
         buffEl.textContent = buff.icon;
         buffEl.onclick = () => {
@@ -462,19 +484,6 @@ function spawnBattleBuff() {
             if(!isMuted) sounds.win.play().catch(() => {});
             createDamagePop(`${buff.text} ACTIVE!`, 'main-roll-btn', buff.color, true);
             buffEl.remove(); 
-        };
-    } 
-    // 💣 7% CHANCE: THE BOMB TRAP! (43 to 49)
-    else if (rand <= 49) {
-        buffEl.textContent = '💣';
-        buffEl.onclick = () => {
-            coins = Math.max(0, coins - 15); 
-            if(!isMuted) sounds.shatter.play().catch(()=>{}); 
-            document.body.classList.add('violent-shake'); 
-            setTimeout(() => document.body.classList.remove('violent-shake'), 500);
-            createDamagePop(`-15 💰`, 'main-roll-btn', '#ef4444', true);
-            buffEl.remove(); 
-            updateUI(); 
         };
     } 
     // 💎 3% CHANCE: DIAMOND JACKPOT (50 to 52)
@@ -710,6 +719,10 @@ window.rollDice = function() {
                 createDamagePop(`CRIT! -${dmg}`, 'p2-img', '#ef4444', true); if(!isMuted) sounds.pulse.play().catch(() => {}); 
             } else if (usedDoubleSkill) { createDamagePop(`-${dmg}`, 'p2-img', '#fbbf24', false); 
             } else { createDamagePop(dmg, 'p2-img'); }
+            
+            // 🔥 IT ONLY SPAWNS IF YOU WIN NOW!
+            spawnBattleBuff();
+
         } else if (d2 > d1) {
             let dmg = d2 * 5;
             if (nextRollBuff === 'shield') { dmg = 0; createDamagePop("BLOCKED!", 'p1-img', '#3b82f6', true); } 
@@ -724,7 +737,6 @@ window.rollDice = function() {
         triggerBossObstacles(); 
         checkAchievements(); 
         updateUI(); 
-        spawnBattleBuff();
         
         if (!isOverheated) { rollBtn.disabled = false; rollBtn.style.opacity = '1'; }
     }, 400); 
