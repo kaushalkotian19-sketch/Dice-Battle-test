@@ -1,3 +1,37 @@
+// --- 🎬 BOOT SEQUENCE (SPLASH SCREENS) ---
+window.addEventListener('load', () => {
+    const studioSplash = document.getElementById('splash-studio');
+    const loadingSplash = document.getElementById('splash-loading');
+
+    // 1. Show NovaForge Studios for 2.5 seconds
+    setTimeout(() => {
+        // Fade out Studio
+        studioSplash.style.opacity = '0';
+        
+        setTimeout(() => {
+            // Remove Studio from DOM, Fade in Loading Screen
+            studioSplash.style.display = 'none';
+            loadingSplash.style.display = 'flex';
+            
+            // Tiny delay to trigger the CSS fade transition
+            setTimeout(() => loadingSplash.style.opacity = '1', 50);
+
+            // 2. Keep Loading Screen up for exactly 5 seconds
+            setTimeout(() => {
+                // Fade out Loading Screen
+                loadingSplash.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Remove Loading screen, revealing the Main Menu!
+                    loadingSplash.style.display = 'none';
+                }, 500); 
+                
+            }, 5000); 
+
+        }, 500); 
+    }, 2500); 
+});
+
 // --- PWA SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Failed:', err)));
@@ -443,7 +477,7 @@ function spawnBattleBuff() {
     // 🎰 37% CHANCE: THE ROULETTE (Coin vs Bomb)
     if (rand <= 37) {
         buffEl.textContent = '🪙';
-        buffEl.dataset.type = 'coin'; // Tracks what is currently showing
+        buffEl.dataset.type = 'coin'; 
 
         // The timer that swaps the icon every 800ms
         let toggleTimer = setInterval(() => {
@@ -457,14 +491,14 @@ function spawnBattleBuff() {
         }, 800); 
 
         buffEl.onclick = () => {
-            clearInterval(toggleTimer); // Stop the flashing when clicked
+            clearInterval(toggleTimer); 
             
             if (buffEl.dataset.type === 'coin') {
                 coins += 12; 
                 if(!isMuted) sounds.win.play().catch(() => {});
                 createDamagePop(`+12 💰`, 'main-roll-btn', '#fbbf24', true);
             } else {
-                coins = Math.max(0, coins - 16); // The -16 Trap!
+                coins = Math.max(0, coins - 16); 
                 if(!isMuted) sounds.shatter.play().catch(()=>{}); 
                 document.body.classList.add('violent-shake'); 
                 setTimeout(() => document.body.classList.remove('violent-shake'), 500);
@@ -586,6 +620,7 @@ window.switchLeaderboard = function(type) {
     } else { updateUI(); }
 }
 
+// Reverted to your fully working standard sharing function
 window.shareGame = async function() {
     const today = new Date().toDateString();
     if (lastShareDate !== today) { dailySharesCount = 0; lastShareDate = today; }
@@ -947,14 +982,23 @@ function updateUI() {
         else { adBtn.innerHTML = `📺 WATCH AD (+5 💎) [${MAX_DAILY_ADS - currentAdCount} LEFT]`; adBtn.style.opacity = '1'; }
     }
     
-    const shareBtn = document.getElementById('share-game-btn');
-    if (shareBtn) {
+    // --- MINI SHARE BUTTON LOGIC ---
+    const miniShareBtn = document.getElementById('mini-share-btn');
+    const miniShareText = document.getElementById('share-mini-text');
+    if (miniShareBtn && miniShareText) {
         const today = new Date().toDateString();
         let currentShareCount = (lastShareDate === today) ? dailySharesCount : 0;
+        
         if (currentShareCount >= MAX_DAILY_SHARES) {
-            shareBtn.innerHTML = `📢 COME BACK TOMORROW`; shareBtn.style.opacity = '0.5';
+            miniShareText.textContent = "MAX";
+            miniShareText.style.color = "rgba(255,255,255,0.5)";
+            miniShareBtn.style.opacity = '0.5';
+            miniShareBtn.style.borderColor = "var(--border)";
         } else {
-            shareBtn.innerHTML = `📢 INVITE FRIENDS (+1 💎) [${MAX_DAILY_SHARES - currentShareCount} LEFT]`; shareBtn.style.opacity = '1';
+            miniShareText.textContent = `+1 💎 (${MAX_DAILY_SHARES - currentShareCount})`;
+            miniShareText.style.color = "#10b981";
+            miniShareBtn.style.opacity = '1';
+            miniShareBtn.style.borderColor = "#10b981";
         }
     }
     
