@@ -121,7 +121,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 0; }
 @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); } 50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); } }
 
 /* NAV & WALLET */
-.nav-bar { position: fixed; bottom: 0; width: 100%; left: 0; height: 60px; display: flex; justify-content: space-around; align-items: center; padding: 0; z-index: 10; margin: 0; border-top: 1px solid var(--border); }
+.nav-bar { position: fixed; bottom: 0; top: auto; width: 100%; left: 0; height: 60px; display: flex; justify-content: space-around; align-items: center; padding: 0; z-index: 10; margin: 0; border-top: 1px solid var(--border); }
 .nav-bar button { background: none; border: none; color: white; font-weight: bold; flex: 1; height: 100%; font-size: 0.9rem; cursor: pointer; }
 .wallet-bar { position: fixed; top: 0; bottom: auto; left: 0; width: 100%; height: 60px; background: #0f172a; display: flex; justify-content: space-evenly; align-items: center; border-bottom: 1px solid var(--border); font-weight: bold; z-index: 5; }
 
@@ -191,3 +191,79 @@ body.env-dungeon .particle { width: 4px; height: 4px; background: rgba(255,255,2
 .guide-scroll-area h4 { color: var(--gold); margin: 15px 0 5px 0; font-size: 1rem; text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); text-transform: uppercase; }
 .guide-scroll-area ul { padding-left: 20px; margin: 0; }
 .guide-scroll-area li { margin-bottom: 8px; }
+
+/* --- 🎬 PREMIUM SPLASH SCREENS --- */
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #111827; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; 
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* NovaForge Branding */
+.nova-logo {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    text-align: center;
+    letter-spacing: -1px;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.nova-sub {
+    color: #4f46e5; 
+    font-size: 1.5rem;
+    letter-spacing: 6px;
+    text-shadow: none;
+    text-transform: uppercase;
+}
+
+/* Loading Dice Animation */
+.spinning-dice {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    animation: spinBounce 1.2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+}
+
+@keyframes spinBounce {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-50px) rotate(180deg); }
+    100% { transform: translateY(0) rotate(360deg); }
+}
+
+/* Premium Loading Bar */
+.loading-bar-bg {
+    width: 220px;
+    height: 8px;
+    background: #1e293b;
+    border-radius: 10px;
+    margin-top: 40px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    box-shadow: 0 0 10px #38bdf8;
+    animation: loadFill 5s linear forwards; 
+}
+
+@keyframes loadFill {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
